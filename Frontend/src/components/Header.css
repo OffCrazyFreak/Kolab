@@ -1,0 +1,15 @@
+.desktop-nav > *,
+.mobile-nav-menu *,
+.secondary-nav-link {
+  font-weight: 700;
+
+  text-decoration: none;
+}
+
+.desktop-nav > *,
+.secondary-nav-link {
+  color: white;
+}
+.mobile-nav-menu * {
+  color: #333;
+}
