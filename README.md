@@ -46,7 +46,9 @@ Licensed under GNU GPL v3 license.
 mvn spring-boot:run
 ```
 
-This will create all necessary database tables automatically. 5. Create the initial user:
+This will create all necessary database tables automatically.
+
+5. Create the initial user:
 
 - Open your browser and navigate to the Swagger documentation at localhost:8080/api-docs
 - Use the appropriate endpoint to create your first user with email that you can login via google
