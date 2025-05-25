@@ -149,7 +149,7 @@ export default function Header({ setUserIsLoggedIn }) {
                     ? "Unknown user"
                     : user.nickname
                     ? user.nickname
-                    : user.firstName + " " + user.lastName}
+                    : user.name + " " + user.surname}
                 </Link>
 
                 <Tooltip title="Open account menu">

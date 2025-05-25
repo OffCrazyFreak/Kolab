@@ -187,9 +187,9 @@ export default function CollaborationForm({
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/projects/", {
+      const serverResponse = await fetch("/api/projects", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
@@ -214,9 +214,9 @@ export default function CollaborationForm({
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/companies/", {
+      const serverResponse = await fetch("/api/companies", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
@@ -241,9 +241,9 @@ export default function CollaborationForm({
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/users/", {
+      const serverResponse = await fetch("/api/users", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
@@ -272,7 +272,7 @@ export default function CollaborationForm({
         "/api/companies/" + formData.companyId,
         {
           method: "GET",
-          headers: { googleTokenEncoded: JWToken.credential },
+          headers: { Authorization: `Bearer ${JWToken.credential}` },
         }
       );
 
@@ -339,7 +339,7 @@ export default function CollaborationForm({
     const request = {
       method: collaboration ? "PUT" : "POST",
       headers: {
-        googleTokenEncoded: JWToken.credential,
+       Authorization: `Bearer ${JWToken.credential}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(collaborationData),
@@ -510,7 +510,7 @@ export default function CollaborationForm({
                 entityKey="responsibleId"
                 validationKey="responsibleIdIsValid"
                 label="Collaboration responsible"
-                formatter={(option) => option.firstName + " " + option.lastName}
+                formatter={(option) => option.name + " " + option.surname}
                 formData={formData}
                 setFormData={setFormData}
               />
@@ -564,7 +564,7 @@ export default function CollaborationForm({
                 entityKey="contactId"
                 validationKey="contactIdIsValid"
                 label="Contact in company"
-                formatter={(option) => option.firstName + " " + option.lastName}
+                formatter={(option) => option.name + " " + option.surname}
                 disabledCondition={!formData.validation.companyIdIsValid}
                 helperTextCondition={!formData.validation.companyIdIsValid}
                 helperText="Select a company to change contact"

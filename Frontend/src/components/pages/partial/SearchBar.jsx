@@ -8,9 +8,7 @@ export default function SearchBar({ type, data, setSearchResults }) {
     const results = data.filter((item) => {
       switch (type) {
         case "users":
-          return (item.firstName + " " + item.lastName)
-            .toLowerCase()
-            .includes(value);
+          return (item.name + " " + item.surname).toLowerCase().includes(value);
         case "companies":
           return item.name.toLowerCase().includes(value);
         case "projects":
@@ -34,8 +32,7 @@ export default function SearchBar({ type, data, setSearchResults }) {
       }}
       options={data?.map((item) => ({
         value: item.id,
-        label:
-          type === "users" ? `${item.firstName} ${item.lastName}` : item.name, // TODO: collaborations label?
+        label: type === "users" ? `${item.name} ${item.surname}` : item.name, // TODO: collaborations label?
       }))}
       renderOption={(props, option) => (
         <li {...props} key={option.value}>

@@ -43,9 +43,9 @@ export default function App() {
 
     try {
       const serverResponse = await fetch("/api/users/login", {
-        method: "GET",
+        method: "POST",
         headers: {
-          googleTokenEncoded: JWToken.credential,
+          Authorization: `Bearer ${JWToken.credential}`,
         },
       });
 

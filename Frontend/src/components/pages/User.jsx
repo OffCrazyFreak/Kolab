@@ -83,9 +83,8 @@ const tableColumns = [
 const userInfo = {
   loginEmail: "john.doe@gmail.com",
   authority: "ADMINISTRATOR",
-  firstName: "John",
-  lastName: "Doe",
-  softLocked: false,
+  name: "John",
+  surname: "Doe",
   notificationEmail: "john.doe@gmail.com",
   description: "Default humanoid being.",
   nickname: "JD",
@@ -129,15 +128,13 @@ export default function User() {
 
   const [searchResults, setSearchResults] = useState([]);
 
-  const [loadingSoftLockButton, setLoadingSoftLockButton] = useState(false);
-
   async function fetchUser() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
       const serverResponse = await fetch("/api/users/" + userId, {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
       if (serverResponse.ok) {
         const json = await serverResponse.json();
@@ -173,48 +170,11 @@ export default function User() {
   }
 
   function handleDeleteUser() {
-    setObject({ type: "User", name: user.firstName + " " + user.lastName });
+    setObject({ type: "User", name: user.name + " " + user.surname });
     setEndpoint("/api/users/" + user.id);
     setFetchUpdatedData({ function: navigateUsers });
 
     setOpenDeleteAlert(true);
-  }
-
-  async function handleSoftLockUser() {
-    setLoadingSoftLockButton(true);
-
-    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
-
-    try {
-      const serverResponse = await fetch(
-        "/api/users/" + user.id + "/softLock",
-        {
-          method: "PATCH",
-          headers: { googleTokenEncoded: JWToken.credential },
-        }
-      );
-
-      if (serverResponse.ok) {
-        const json = await serverResponse.json();
-        user.softLocked = json;
-
-        handleOpenToast({
-          type: "success",
-          info: `User ${user.firstName} ${user.lastName} soft locked.`,
-        });
-      } else {
-        handleOpenToast({
-          type: "error",
-          info: "A server error occurred whilst soft locking.",
-        });
-      }
-    } catch (error) {
-      handleOpenToast({
-        type: "error",
-        info: "An error occurred whilst trying to connect to server.",
-      });
-    }
-    setLoadingSoftLockButton(false);
   }
 
   function handleEditCollaboration(collaboration) {
@@ -296,38 +256,9 @@ export default function User() {
                 gap: 0.5,
               }}
             >
-              <Tooltip
-                title={user.softLocked ? "Soft unlock" : "Soft lock"}
-                key="Soft lock"
-              >
-                <IconButton
-                  size="small"
-                  onClick={handleSoftLockUser}
-                  sx={{
-                    color: "white",
-                    backgroundColor: "#1976d2",
-
-                    borderRadius: 1,
-                  }}
-                >
-                  {loadingSoftLockButton ? (
-                    <CircularProgress
-                      size={17}
-                      sx={{
-                        color: "white",
-                      }}
-                    />
-                  ) : user.softLocked ? (
-                    <LockOpenIcon />
-                  ) : (
-                    <LockIcon />
-                  )}
-                </IconButton>
-              </Tooltip>
               <Tooltip title="Edit" key="Edit">
                 <IconButton
                   size="small"
-                  disabled={user.softLocked}
                   onClick={handleEditUser}
                   sx={{
                     color: "white",
@@ -342,7 +273,6 @@ export default function User() {
               <Tooltip title="Delete" key="Delete">
                 <IconButton
                   size="small"
-                  disabled={user.softLocked}
                   onClick={handleDeleteUser}
                   sx={{
                     color: "white",
@@ -372,7 +302,7 @@ export default function User() {
                 textTransform: "uppercase",
               }}
             >
-              {userInfo.firstName + " " + userInfo.lastName}
+              {userInfo.name + " " + userInfo.surname}
             </Typography>
 
             <Accordion defaultExpanded sx={{ marginBlock: 2 }}>

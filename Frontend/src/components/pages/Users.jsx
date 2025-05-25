@@ -19,11 +19,11 @@ import SearchBar from "./partial/SearchBar";
 import TableComponent from "./partial/TableComponent";
 
 const tableColumns = [
-  { key: "firstName", label: "Name" },
-  { key: "lastName", label: "Surname" },
+  { key: "name", label: "Name" },
+  { key: "surname", label: "Surname" },
   { key: "nickname", label: "Nickname", xsHide: true },
-  { key: "loginEmail", label: "E-mail", xsHide: true },
-  { key: "authority", label: "Max authorization level", xsHide: true },
+  { key: "email", label: "E-mail", xsHide: true },
+  { key: "authorization", label: "Authorization", xsHide: true },
 ];
 
 export default function Users() {
@@ -47,9 +47,9 @@ export default function Users() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/users/", {
+      const serverResponse = await fetch("/api/users", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
@@ -83,7 +83,7 @@ export default function Users() {
   }
 
   function handleDelete(user) {
-    setObject({ type: "User", name: user.firstName + " " + user.lastName });
+    setObject({ type: "User", name: user.name + " " + user.surname });
     setEndpoint("/api/users/" + user.id);
     setFetchUpdatedData({ function: populateTable });
 

@@ -55,8 +55,8 @@ export default function UserForm({
 
   const [formData, setFormData] = useState({
     entity: {
-      firstName: null,
-      lastName: null,
+      name: null,
+      surname: null,
       nickname: null,
       loginEmail: null,
       notificationEmail: null,
@@ -66,8 +66,8 @@ export default function UserForm({
     },
     validation: {
       // optional and predefined fields are valid by default
-      firstNameIsValid: false,
-      lastNameIsValid: false,
+      nameIsValid: false,
+      surnameIsValid: false,
       nicknameIsValid: false,
       loginEmailIsValid: false,
       notificationEmailIsValid: true,
@@ -91,8 +91,8 @@ export default function UserForm({
 
     // object destructuring
     const {
-      firstName,
-      lastName,
+      name,
+      surname,
       nickname,
       loginEmail,
       notificationEmail,
@@ -102,8 +102,8 @@ export default function UserForm({
     } = formData.entity;
 
     const userData = {
-      firstName: firstName?.trim(),
-      lastName: lastName?.trim(),
+      name: name?.trim(),
+      surname: surname?.trim(),
       nickname: nickname?.trim(),
       loginEmail: loginEmail?.trim(),
       notificationEmail: useDifferentEmails
@@ -118,7 +118,7 @@ export default function UserForm({
     const request = {
       method: user ? "PUT" : "POST",
       headers: {
-        googleTokenEncoded: JWToken.credential,
+        Authorization: `Bearer ${JWToken.credential}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(userData),
@@ -129,7 +129,7 @@ export default function UserForm({
     if (serverResponse.ok) {
       handleOpenToast({
         type: "success",
-        info: `User ${userData.firstName} ${userData.lastName} ${
+        info: `User ${userData.name} ${userData.surname} ${
           user ? "updated" : "added"
         }.`,
       });
@@ -166,8 +166,8 @@ export default function UserForm({
   useEffect(() => {
     // object destructuring
     const {
-      firstName,
-      lastName,
+      name,
+      surname,
       nickname,
       loginEmail,
       notificationEmail,
@@ -177,8 +177,8 @@ export default function UserForm({
 
     setFormData({
       entity: {
-        firstName: firstName,
-        lastName: lastName,
+        name: name,
+        surname: surname,
         nickname: nickname,
         loginEmail: loginEmail,
         notificationEmail: notificationEmail,
@@ -189,8 +189,8 @@ export default function UserForm({
         description: description,
       },
       validation: {
-        firstNameIsValid: user ? true : false,
-        lastNameIsValid: user ? true : false,
+        nameIsValid: user ? true : false,
+        surnameIsValid: user ? true : false,
         nicknameIsValid: user ? true : false,
         loginEmailIsValid: user ? true : false,
         notificationEmailIsValid: true,
@@ -259,7 +259,7 @@ export default function UserForm({
                   details: "",
                 }}
                 inputProps={{
-                  name: "firstName",
+                  name: "name",
                   minLength: 2,
                   maxLength: 35,
                 }}
@@ -278,7 +278,7 @@ export default function UserForm({
                   error: "Last name must be between 2 and 35 characters",
                   details: "",
                 }}
-                inputProps={{ name: "lastName", minLength: 2, maxLength: 35 }}
+                inputProps={{ name: "surname", minLength: 2, maxLength: 35 }}
                 validationFunction={(input) => {
                   return input.trim().length >= 2 && input.trim().length <= 35;
                 }}

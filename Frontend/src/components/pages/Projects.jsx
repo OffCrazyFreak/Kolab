@@ -4,6 +4,7 @@ import {
   Button,
   Typography,
   CircularProgress,
+  ButtonGroup,
 } from "@mui/material";
 import { AddCircle as AddCircleIcon } from "@mui/icons-material";
 
@@ -14,6 +15,7 @@ import ToastContext from "../../context/ToastContext";
 import DeleteAlertContext from "../../context/DeleteAlertContext";
 
 import ProjectForm from "./../forms/ProjectForm";
+import CategoryForm from "./../forms/CategoryForm";
 
 import SearchBar from "./partial/SearchBar";
 import TableComponent from "./partial/TableComponent";
@@ -21,9 +23,9 @@ import TableComponent from "./partial/TableComponent";
 const tableColumns = [
   { key: "name", label: "Project name" },
   { key: "category", label: "Category", xsHide: true },
-  { key: "frresp", label: "Project responsible" },
-  { key: "endDate", label: "Project end date", xsHide: true },
-  { key: "frgoal", label: "FR goal", xsHide: true },
+  { key: "responsible", label: "Responsible", xsHide: true },
+  { key: "endDate", label: "End Date", xsHide: true },
+  { key: "goal", label: "Goal", xsHide: true },
 ];
 
 export default function Projects() {
@@ -33,8 +35,11 @@ export default function Projects() {
   const { setOpenDeleteAlert, setObject, setEndpoint, setFetchUpdatedData } =
     useContext(DeleteAlertContext);
 
-  const [openFormModal, setOpenFormModal] = useState(false);
+  const [openProjectFormModal, setOpenProjectFormModal] = useState(false);
   const [project, setProject] = useState();
+
+  const [openCategoryFormModal, setOpenCategoryFormModal] = useState(false);
+  const [Category, setCategory] = useState(null);
 
   const [data, setData] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -47,9 +52,9 @@ export default function Projects() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/projects/", {
+      const serverResponse = await fetch("/api/projects", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
@@ -73,16 +78,16 @@ export default function Projects() {
     setLoading(false);
   }
 
-  function handleView(project) {
+  function handleViewProject(project) {
     navigate(`/projects/${project.id}`);
   }
 
-  function handleEdit(project) {
+  function handleEditProject(project) {
     setProject(project);
-    setOpenFormModal(true);
+    setOpenProjectFormModal(true);
   }
 
-  function handleDelete(project) {
+  function handleDeleteProject(project) {
     setObject({ type: "Project", name: project.name });
     setEndpoint("/api/projects/" + project.id);
     setFetchUpdatedData({ function: populateTable });
@@ -98,8 +103,15 @@ export default function Projects() {
     <>
       <ProjectForm
         object={project}
-        openModal={openFormModal}
-        setOpenModal={setOpenFormModal}
+        openModal={openProjectFormModal}
+        setOpenModal={setOpenProjectFormModal}
+        fetchUpdatedData={populateTable}
+      />
+
+      <CategoryForm
+        object={Category}
+        openModal={openCategoryFormModal}
+        setOpenModal={setOpenCategoryFormModal}
         fetchUpdatedData={populateTable}
       />
 
@@ -120,17 +132,27 @@ export default function Projects() {
           setSearchResults={setSearchResults}
         />
 
-        <Button
-          variant="contained"
-          size="medium"
-          startIcon={<AddCircleIcon />}
-          onClick={() => {
-            setProject();
-            setOpenFormModal(true);
-          }}
-        >
-          Add project
-        </Button>
+        <ButtonGroup variant="contained" size="medium">
+          <Button
+            startIcon={<AddCircleIcon />}
+            onClick={() => {
+              setCategory();
+              setOpenCategoryFormModal(true);
+            }}
+          >
+            Add category
+          </Button>
+
+          <Button
+            startIcon={<AddCircleIcon />}
+            onClick={() => {
+              setProject();
+              setOpenProjectFormModal(true);
+            }}
+          >
+            Add project
+          </Button>
+        </ButtonGroup>
       </Container>
 
       <Container maxWidth="false">
@@ -147,9 +169,9 @@ export default function Projects() {
             tableColumns={tableColumns}
             searchResults={searchResults}
             setSearchResults={setSearchResults}
-            handleView={handleView}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
+            handleView={handleViewProject}
+            handleEdit={handleEditProject}
+            handleDelete={handleDeleteProject}
           ></TableComponent>
         )}
       </Container>

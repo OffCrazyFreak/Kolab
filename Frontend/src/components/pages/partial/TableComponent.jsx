@@ -61,13 +61,9 @@ export default function TableComponent({
           return 1;
         } else if (b[column.key] === null) {
           return -1;
-        } else if (column.key === "frresp") {
-          (
-            a[column.key].firstName +
-            " " +
-            a[column.key].lastName
-          ).localeCompare(
-            b[column.key].firstName + " " + b[column.key].lastName
+        } else if (column.key === "responsible") {
+          (a[column.key].name + " " + a[column.key].surname).localeCompare(
+            b[column.key].name + " " + b[column.key].surname
           );
         } else {
           // TODO: sorting numbers is still broken
@@ -81,14 +77,16 @@ export default function TableComponent({
   }
 
   function getFormatedCellValue(column, value) {
-    if (column.key === "frresp") {
-      return value.firstName + " " + value.lastName;
+    if (column.key === "responsible") {
+      return value.name + " " + value.surname;
     } else if (column.key === "webUrl") {
       return (
         <Link href={value} target="_blank">
           {value}
         </Link>
       );
+    } else if (column.key === "category" || column.key === "industry") {
+      return value.name;
     } else if (column.key === "endDate") {
       return moment(value).format("DD.MM.YYYY.");
     } else if (column.key === "comment") {

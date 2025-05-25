@@ -30,19 +30,19 @@ const abcCategories = [
 ];
 
 const months = [
-  { value: "Unknown", label: "Unknown" },
-  { value: "January", label: "January" },
-  { value: "February", label: "February" },
-  { value: "March", label: "March" },
-  { value: "April", label: "April" },
-  { value: "May", label: "May" },
-  { value: "June", label: "June" },
-  { value: "July", label: "July" },
-  { value: "August", label: "August" },
-  { value: "September", label: "September" },
-  { value: "October", label: "October" },
-  { value: "November", label: "November" },
-  { value: "December", label: "December" },
+  { value: "UNKNOWN", label: "Unknown" },
+  { value: "JANUARY", label: "January" },
+  { value: "FEBRUARY", label: "February" },
+  { value: "MARCH", label: "March" },
+  { value: "APRIL", label: "April" },
+  { value: "MAY", label: "May" },
+  { value: "JUNE", label: "June" },
+  { value: "JULY", label: "July" },
+  { value: "AUGUST", label: "August" },
+  { value: "SEPTEMBER", label: "September" },
+  { value: "OCTOBER", label: "October" },
+  { value: "NOVEMBER", label: "November" },
+  { value: "DECEMBER", label: "December" },
 ];
 
 export default function CompanyForm({
@@ -53,51 +53,51 @@ export default function CompanyForm({
 }) {
   const { handleOpenToast } = useContext(ToastContext);
 
-  const [existingCompanies, setExistingCompanies] = useState([]);
+  const [existingIndustries, setExistingIndustries] = useState([]);
   const [countriesFromAPI, setCountriesFromAPI] = useState([]);
   const [loadingButton, setLoadingButton] = useState(false);
 
-  const [name, setName] = useState();
-  const [sector, setSector] = useState();
-  const [abcCategorization, setAbcCategorization] = useState();
-  const [budgetPlanningMonth, setBudgetPlanningMonth] = useState();
-  const [country, setCountry] = useState();
-  const [townName, setTownName] = useState();
-  const [address, setAddress] = useState();
-  const [url, setUrl] = useState();
-  const [description, setDescription] = useState();
-  const [contactInFuture, setContactInFuture] = useState();
+  const [name, setName] = useState("");
+  const [industryId, setIndustryId] = useState(null);
+  const [categorization, setCategorization] = useState("");
+  const [budgetPlanningMonth, setBudgetPlanningMonth] = useState("");
+  const [country, setCountry] = useState("");
+  const [zip, setZip] = useState("");
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+  const [webLink, setWebLink] = useState("");
+  const [description, setDescription] = useState("");
+  const [contactInFuture, setContactInFuture] = useState(true);
 
   const [nameIsValid, setNameIsValid] = useState(false);
-  const [sectorIsValid, setSectorIsValid] = useState();
-  const [abcCategorizationIsValid, setAbcCategorizationIsValid] = useState();
+  const [industryIdIsValid, setIndustryIdIsValid] = useState(false);
+  const [categorizationIsValid, setCategorizationIsValid] = useState(false);
   const [budgetPlanningMonthIsValid, setBudgetPlanningMonthIsValid] =
-    useState();
+    useState(false);
   const [countryIsValid, setCountryIsValid] = useState(false);
-  const [townNameIsValid, setTownNameIsValid] = useState(false);
+  const [zipIsValid, setZipIsValid] = useState(false);
+  const [cityIsValid, setCityIsValid] = useState(false);
   const [addressIsValid, setAddressIsValid] = useState(false);
-  const [urlIsValid, setUrlIsValid] = useState(false);
+  const [webLinkIsValid, setWebLinkIsValid] = useState(false);
   const [descriptionIsValid, setDescriptionIsValid] = useState(false);
-  const [contactInFutureIsValid, setContactInFutureIsValid] = useState(true);
+  const [contactInFutureIsValid, setContactInFutureIsValid] = useState(false);
 
-  async function fetchExistingCompanies() {
+  async function fetchExistingIndustries() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/companies/", {
+      const serverResponse = await fetch("/api/industries", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
         const json = await serverResponse.json();
-
-        // console.log(json);
-        setExistingCompanies(json);
+        setExistingIndustries(json);
       } else {
         handleOpenToast({
           type: "error",
-          info: "A server error occurred whilst fetching companies for Sector input field.",
+          info: "A server error occurred whilst fetching industries.",
         });
       }
     } catch (error) {
@@ -107,6 +107,7 @@ export default function CompanyForm({
       });
     }
   }
+
   async function fetchCountriesFromAPI() {
     try {
       const serverResponse = await fetch(
@@ -138,35 +139,31 @@ export default function CompanyForm({
   async function submit() {
     if (
       !nameIsValid ||
-      !sectorIsValid ||
-      !abcCategorizationIsValid ||
+      !industryIdIsValid ||
+      !categorizationIsValid ||
       !budgetPlanningMonthIsValid ||
       !countryIsValid ||
-      !townNameIsValid ||
+      !zipIsValid ||
+      !cityIsValid ||
       !addressIsValid ||
-      !descriptionIsValid ||
-      !contactInFutureIsValid
+      !descriptionIsValid
     ) {
       return;
     }
 
     setLoadingButton(true);
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
     const companyData = {
       name: name.trim(),
-      sector: sector.trim(),
-      abcCategory:
-        abcCategorization === abcCategories[0].value
-          ? null
-          : abcCategorization.toUpperCase(),
-      budgetPlanningMonth:
-        budgetPlanningMonth === months[0].value
-          ? null
-          : budgetPlanningMonth.toUpperCase(),
+      industryId: industryId,
+      categorization: categorization,
+      budgetPlanningMonth: budgetPlanningMonth,
       country: country,
-      townName: townName,
+      zip: zip,
+      city: city,
       address: address,
-      webUrl: url,
+      webLink: webLink,
       description: description,
       contactInFuture: contactInFuture,
     };
@@ -174,82 +171,65 @@ export default function CompanyForm({
     const request = {
       method: company ? "PUT" : "POST",
       headers: {
-        googleTokenEncoded: JWToken.credential,
+        Authorization: `Bearer ${JWToken.credential}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(companyData),
     };
 
-    const serverResponse = await fetch(
-      `/api/companies/${company?.id ?? ""}`,
-      request
-    );
+    try {
+      const serverResponse = await fetch(
+        `/api/companies/${company?.id ?? ""}`,
+        request
+      );
 
-    if (serverResponse.ok) {
-      handleOpenToast({
-        type: "success",
-        info:
-          "Company " +
-          companyData.name +
-          " " +
-          (company ? "updated" : "added") +
-          ".",
-      });
-
-      setOpenModal(false);
-      fetchUpdatedData();
-    } else if (serverResponse.status === 400) {
-      handleOpenToast({
-        type: "error",
-        info: "Invalid company details.",
-      });
-    } else if (serverResponse.status === 403) {
+      if (serverResponse.ok) {
+        handleOpenToast({
+          type: "success",
+          info: `Company ${companyData.name} ${company ? "updated" : "added"}.`,
+        });
+        setOpenModal(false);
+        fetchUpdatedData();
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "A server error occurred while saving the company.",
+        });
+      }
+    } catch (error) {
       handleOpenToast({
         type: "error",
-        info: "Project responsible privileges are required for manipulating companies.",
+        info: "An error occurred while trying to connect to server.",
       });
-    } else if (serverResponse.status === 404) {
-      handleOpenToast({
-        type: "error",
-        info: "Company with id " + company.id + " does not exist.",
-      });
-    } else {
-      handleOpenToast({
-        type: "error",
-        info:
-          "An unknown error occurred whilst trying to " +
-          (company ? "update" : "add") +
-          " company.",
-      });
+    } finally {
+      setLoadingButton(false);
     }
-
-    setLoadingButton(false);
   }
 
   useEffect(() => {
     setName(company?.name);
-    setSector(company?.sector);
-    setAbcCategorization(company?.abcCategorization || abcCategories[0].value);
-    setBudgetPlanningMonth(company?.budgetMonth || months[0].value);
+    setIndustryId(company?.industry?.id);
+    setCategorization(company?.categorization || abcCategories[0].value);
+    setBudgetPlanningMonth(company?.budgetPlanningMonth || months[0].value);
     setCountry(company?.country);
-    setTownName(company?.townName);
+    setCity(company?.city);
     setAddress(company?.address);
-    setUrl(company?.url);
+    setWebLink(company?.webLink);
     setDescription(company?.description);
     setContactInFuture(company?.contactInFuture || true);
 
     setNameIsValid(company ? true : false);
-    setSectorIsValid(company ? true : false);
-    setAbcCategorizationIsValid(true);
+    setIndustryIdIsValid(company ? true : false);
+    setCategorizationIsValid(true);
     setBudgetPlanningMonthIsValid(true);
     setCountryIsValid(company ? true : false);
-    setTownNameIsValid(company ? true : false);
+    setCityIsValid(company ? true : false);
     setAddressIsValid(company ? true : false);
-    setUrlIsValid(true);
+    setWebLinkIsValid(true);
     setDescriptionIsValid(true);
     setContactInFutureIsValid(true);
 
-    fetchExistingCompanies();
+    fetchExistingIndustries();
     fetchCountriesFromAPI();
   }, [openModal]);
 
@@ -327,32 +307,32 @@ export default function CompanyForm({
               />
 
               <Autocomplete
-                options={existingCompanies
-                  .map((company) => company.sector)
-                  .filter(
-                    (sector, index, array) => array.indexOf(sector) === index
-                  )
-                  .sort((a, b) => {
-                    return a.localeCompare(b);
-                  })}
-                filterOptions={(options, { inputValue }) =>
-                  options.filter((option) =>
-                    option.toLowerCase().includes(inputValue.toLowerCase())
-                  )
-                }
+                options={existingIndustries}
                 clearOnEscape
                 openOnFocus
-                freeSolo
-                inputValue={sector || ""}
-                onInputChange={(event, value) => {
-                  setSector(value);
-                  setSectorIsValid(value.length >= 2 && value.length <= 35);
+                value={
+                  existingIndustries.find((ind) => ind.id === industryId) ||
+                  null
+                }
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                filterOptions={(options, { inputValue }) =>
+                  options.filter((option) =>
+                    option.name.toLowerCase().includes(inputValue.toLowerCase())
+                  )
+                }
+                onChange={(e, inputValue) => {
+                  setIndustryId(inputValue?.id);
+                  setIndustryIdIsValid(
+                    existingIndustries
+                      .map((option) => option.id)
+                      .includes(inputValue?.id)
+                  );
                 }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Sector"
-                    placeholder="IT"
+                    label="Industry"
                     required
                     fullWidth
                     margin="dense"
@@ -366,20 +346,20 @@ export default function CompanyForm({
                 select
                 margin="dense"
                 helperText={
-                  !abcCategorizationIsValid && "Invalid ABC categorization"
+                  !categorizationIsValid && "Invalid ABC categorization"
                 }
-                value={abcCategorization}
-                error={!abcCategorizationIsValid}
+                value={categorization}
+                error={!categorizationIsValid}
                 onChange={(e) => {
                   const input = e.target.value;
 
-                  setAbcCategorizationIsValid(
+                  setCategorizationIsValid(
                     abcCategories
                       .map((category) => category.value)
                       .includes(input)
                   );
 
-                  setAbcCategorization(input);
+                  setCategorization(input);
                 }}
               >
                 {abcCategories.map((option) => (
@@ -419,7 +399,7 @@ export default function CompanyForm({
               <Autocomplete
                 options={countriesFromAPI
                   .map((country) => country.name.common)
-                  .concat(existingCompanies.map((company) => company.country))
+                  .concat(existingIndustries.map((company) => company.country))
                   .filter(
                     (country, index, array) => array.indexOf(country) === index
                   )
@@ -452,12 +432,9 @@ export default function CompanyForm({
               />
 
               <Autocomplete
-                options={existingCompanies
-                  .map((company) => company.townName)
-                  .filter(
-                    (townName, index, array) =>
-                      array.indexOf(townName) === index
-                  )
+                options={existingIndustries
+                  .map((company) => company.city)
+                  .filter((city, index, array) => array.indexOf(city) === index)
                   .sort((a, b) => {
                     return a.localeCompare(b);
                   })}
@@ -469,15 +446,15 @@ export default function CompanyForm({
                 clearOnEscape
                 openOnFocus
                 freeSolo
-                inputValue={townName || ""}
+                inputValue={city || ""}
                 onInputChange={(event, value) => {
-                  setTownName(value);
-                  setTownNameIsValid(value.length >= 2 && value.length <= 115);
+                  setCity(value);
+                  setCityIsValid(value.length >= 2 && value.length <= 115);
 
-                  // set country based on chosen town
+                  // set country based on chosen city
                   if (!country || country === "") {
-                    const countryFromCity = existingCompanies.find(
-                      (company) => company.townName === value
+                    const countryFromCity = existingIndustries.find(
+                      (company) => company.city === value
                     ).country;
 
                     const matchedCountryInApi = countriesFromAPI.find(
@@ -490,7 +467,7 @@ export default function CompanyForm({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Town"
+                    label="City"
                     placeholder="El Pueblo de Nuestra Senora, Reina de los Angeles del Rio Porciuncula"
                     required
                     fullWidth
@@ -539,10 +516,10 @@ export default function CompanyForm({
                     (input.length <= 55 && urlPattern.test(input))
                   );
                 }}
-                value={url}
-                setValue={setUrl}
-                valueIsValid={urlIsValid}
-                setValueIsValid={setUrlIsValid}
+                value={webLink}
+                setValue={setWebLink}
+                valueIsValid={webLinkIsValid}
+                setValueIsValid={setWebLinkIsValid}
               />
 
               <TextInput
@@ -611,13 +588,13 @@ export default function CompanyForm({
                 disabled={
                   !(
                     nameIsValid &&
-                    sectorIsValid &&
-                    abcCategorizationIsValid &&
+                    industryIdIsValid &&
+                    categorizationIsValid &&
                     budgetPlanningMonthIsValid &&
                     countryIsValid &&
-                    townNameIsValid &&
+                    cityIsValid &&
                     addressIsValid &&
-                    urlIsValid &&
+                    webLinkIsValid &&
                     contactInFutureIsValid
                   )
                 }

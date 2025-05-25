@@ -64,19 +64,6 @@ const tableColumns = [
     notSortable: true,
     centerContent: true,
     xsHide: true,
-    mdHide: true,
-  },
-  {
-    key: "achievedValue",
-    label: "Value",
-    xsHide: true,
-  },
-  {
-    key: "comment",
-    label: "Comment",
-    xsHide: true,
-    mdHide: true,
-    showTooltip: true,
   },
 ];
 
@@ -101,15 +88,13 @@ export default function Project() {
 
   const [searchResults, setSearchResults] = useState([]);
 
-  const [loadingSoftLockButton, setLoadingSoftLockButton] = useState(false);
-
   async function fetchProject() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
       const serverResponse = await fetch("/api/projects/" + projectId, {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
       if (serverResponse.ok) {
         const json = await serverResponse.json();
@@ -150,43 +135,6 @@ export default function Project() {
     setFetchUpdatedData({ function: navigateProjects });
 
     setOpenDeleteAlert(true);
-  }
-
-  async function handleSoftLockProject() {
-    setLoadingSoftLockButton(true);
-
-    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
-
-    try {
-      const serverResponse = await fetch(
-        "/api/projects/" + project.id + "/softLock",
-        {
-          method: "PATCH",
-          headers: { googleTokenEncoded: JWToken.credential },
-        }
-      );
-      if (serverResponse.ok) {
-        const json = await serverResponse.json();
-        project.softLocked = json;
-
-        handleOpenToast({
-          type: "success",
-          info: `Project ${project.name} soft locked.`,
-        });
-      } else {
-        handleOpenToast({
-          type: "error",
-          info: "A server error occurred whilst soft locking.",
-        });
-      }
-    } catch (error) {
-      handleOpenToast({
-        type: "error",
-        info: "An error occurred whilst trying to connect to server.",
-      });
-    }
-
-    setLoadingSoftLockButton(false);
   }
 
   function handleEditCollaboration(collaboration) {
@@ -273,38 +221,9 @@ export default function Project() {
                 gap: 0.5,
               }}
             >
-              <Tooltip
-                title={project.softLocked ? "Soft unlock" : "Soft lock"}
-                key="Soft lock"
-              >
-                <IconButton
-                  size="small"
-                  onClick={handleSoftLockProject}
-                  sx={{
-                    color: "white",
-                    backgroundColor: "#1976d2",
-
-                    borderRadius: 1,
-                  }}
-                >
-                  {loadingSoftLockButton ? (
-                    <CircularProgress
-                      size={17}
-                      sx={{
-                        color: "white",
-                      }}
-                    />
-                  ) : project.softLocked ? (
-                    <LockOpenIcon />
-                  ) : (
-                    <LockIcon />
-                  )}
-                </IconButton>
-              </Tooltip>
               <Tooltip title="Edit" key="Edit">
                 <IconButton
                   size="small"
-                  disabled={project.softLocked}
                   onClick={handleEditProject}
                   sx={{
                     color: "white",
@@ -319,7 +238,6 @@ export default function Project() {
               <Tooltip title="Delete" key="Delete">
                 <IconButton
                   size="small"
-                  disabled={project.softLocked}
                   onClick={handleDeleteProject}
                   sx={{
                     color: "white",
@@ -365,127 +283,57 @@ export default function Project() {
               <AccordionDetails>
                 <List dense>
                   <ListItem disablePadding>
-                    <ListItemText primary={"Category: " + project.category} />
+                    <ListItemText
+                      primary="Project name"
+                      secondary={project.name}
+                    />
                   </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText primary={"Type: " + project.type} />
-                  </ListItem>
-
                   <ListItem disablePadding>
                     <ListItemText
-                      primary={
-                        "Start date: " +
-                        moment(project.startDate).format("DD.MM.YYYY")
+                      primary="Category"
+                      secondary={project.category?.name || "Not set"}
+                    />
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemText primary="Type" secondary={project.type} />
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemText
+                      primary="Start date"
+                      secondary={
+                        project.startDate
+                          ? moment(project.startDate).format("DD.MM.YYYY")
+                          : "Not set"
                       }
                     />
                   </ListItem>
-
                   <ListItem disablePadding>
                     <ListItemText
-                      primary={
-                        "End date: " +
-                        moment(project.endDate).format("DD.MM.YYYY")
+                      primary="End date"
+                      secondary={
+                        project.endDate
+                          ? moment(project.endDate).format("DD.MM.YYYY")
+                          : "Not set"
                       }
                     />
                   </ListItem>
-
                   <ListItem disablePadding>
                     <ListItemText
-                      primary={
-                        "Fr responsible: " +
-                        project.frresp?.firstName +
-                        " " +
-                        project.frresp?.lastName
+                      primary="Responsible"
+                      secondary={
+                        project.responsible
+                          ? `${project.responsible.name} ${project.responsible.surname}`
+                          : "Not set"
                       }
                     />
                   </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText primary={"Fr goal: " + project.frgoal} />
-                  </ListItem>
-
                   <ListItem disablePadding>
                     <ListItemText
-                      primary={
-                        "First ping date: " +
-                        (project.firstPingDate
-                          ? moment(project.firstPingDate).format("DD.MM.YYYY")
-                          : "")
-                      }
-                    />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={
-                        "Second ping date: " +
-                        (project.secondPingDate
-                          ? moment(project.secondPingDate).format("DD.MM.YYYY")
-                          : "")
-                      }
+                      primary="Goal"
+                      secondary={project.goal || "Not set"}
                     />
                   </ListItem>
                 </List>
-              </AccordionDetails>
-            </Accordion>
-
-            <Accordion
-              sx={{
-                marginBlock: 2,
-              }}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography
-                  sx={{
-                    textTransform: "uppercase",
-                  }}
-                >
-                  TEAM MEMBERS
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                {project.frTeamMembers?.map((frTeamMember) => (
-                  <Box key={frTeamMember.id} sx={{ marginBlock: 2 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography>
-                        {frTeamMember.firstName + " " + frTeamMember.lastName}
-                      </Typography>
-                      <Box>
-                        <IconButton
-                          disabled={project.softLocked}
-                          aria-label="delete frTeamMember"
-                          onClick={(e) =>
-                            handleRemoveProjectMember(e, frTeamMember.id)
-                          }
-                          sx={{
-                            width: 20,
-                            height: 20,
-
-                            margin: 0.125,
-
-                            color: "white",
-                            backgroundColor: "#1976d2",
-                            borderRadius: 1,
-                          }}
-                        >
-                          <RemoveIcon
-                            sx={{
-                              width: 15,
-                              height: 15,
-                            }}
-                          />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  </Box>
-                ))}
               </AccordionDetails>
             </Accordion>
           </Box>

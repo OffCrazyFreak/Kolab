@@ -43,35 +43,32 @@ export default function ProjectForm({
 
   const [existingUsers, setExistingUsers] = useState([]);
   const [existingProjects, setExistingProjects] = useState([]);
+  const [existingCategories, setExistingCategories] = useState([]);
   const [loadingButton, setLoadingButton] = useState(false);
 
   const [name, setName] = useState();
-  const [category, setCategory] = useState();
+  const [categoryId, setCategoryId] = useState();
   const [type, setType] = useState();
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
-  const [FRRespID, setFRRespID] = useState();
-  const [FRGoal, setFRGoal] = useState();
-  const [firstPingDate, setFirstPingDate] = useState();
-  const [secondPingDate, setSecondPingDate] = useState();
+  const [responsibleId, setResponsibleId] = useState();
+  const [goal, setGoal] = useState();
 
   const [nameIsValid, setNameIsValid] = useState();
-  const [categoryIsValid, setCategoryIsValid] = useState();
+  const [categoryIdIsValid, setCategoryIdIsValid] = useState();
   const [typeIsValid, setTypeIsValid] = useState();
   const [startDateIsValid, setStartDateIsValid] = useState();
   const [endDateIsValid, setEndDateIsValid] = useState();
-  const [FRRespIDIsValid, setFRRespIDIsValid] = useState();
-  const [FRGoalIsValid, setFRGoalIsValid] = useState();
-  const [firstPingDateIsValid, setFirstPingDateIsValid] = useState();
-  const [secondPingDateIsValid, setSecondPingDateIsValid] = useState();
+  const [responsibleIdIsValid, setResponsibleIdIsValid] = useState();
+  const [goalIsValid, setGoalIsValid] = useState();
 
   async function fetchExistingUsers() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/users/", {
+      const serverResponse = await fetch("/api/users", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
@@ -97,9 +94,9 @@ export default function ProjectForm({
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/projects/", {
+      const serverResponse = await fetch("/api/projects", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {
@@ -122,16 +119,40 @@ export default function ProjectForm({
     }
   }
 
+  async function fetchExistingCategories() {
+    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
+    try {
+      const serverResponse = await fetch("/api/categories", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
+      });
+
+      if (serverResponse.ok) {
+        const json = await serverResponse.json();
+        setExistingCategories(json);
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "A server error occurred whilst fetching categories.",
+        });
+      }
+    } catch (error) {
+      handleOpenToast({
+        type: "error",
+        info: "An error occurred whilst trying to connect to server.",
+      });
+    }
+  }
+
   async function submit() {
     if (
       !nameIsValid ||
-      !categoryIsValid ||
+      !categoryIdIsValid ||
+      !typeIsValid ||
       !startDateIsValid ||
-      !endDateIsValid ||
-      !FRRespIDIsValid ||
-      !FRGoalIsValid ||
-      !firstPingDateIsValid ||
-      !secondPingDateIsValid
+      !responsibleIdIsValid ||
+      !goalIsValid
     ) {
       return;
     }
@@ -139,29 +160,26 @@ export default function ProjectForm({
     setLoadingButton(true);
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
     const projectData = {
-      idCreator: user.id,
       name: name.trim(),
-      category: category.trim(),
+      categoryId: categoryId.trim(), // Changed from category to categoryId
       type: type.trim().toUpperCase(),
       startDate: startDate,
       endDate: endDate,
-      idFRResp: FRRespID,
-      frgoal: FRGoal !== "" ? FRGoal : null,
-      firstPingDate: firstPingDate,
-      secondPingDate: secondPingDate,
+      responsibleId: responsibleId, // Changed from idResponsible
+      goal: goal !== "" ? goal : null,
     };
 
     const request = {
       method: project ? "PUT" : "POST",
       headers: {
-        googleTokenEncoded: JWToken.credential,
+        Authorization: `Bearer ${JWToken.credential}`, // Updated to use Bearer token
         "Content-Type": "application/json",
       },
       body: JSON.stringify(projectData),
     };
 
     const serverResponse = await fetch(
-      `/api/projects/${project?.id ?? ""}`,
+      `/api/projects${project ? "/" + project.id : ""}`,
       request
     );
 
@@ -208,35 +226,28 @@ export default function ProjectForm({
 
   useEffect(() => {
     setName(project?.name);
-    setCategory(project?.category);
+    setCategoryId(project?.category?.id);
     setType(
       project?.type?.charAt(0) + project?.type?.slice(1).toLowerCase() ||
         projectTypes[0].value
     );
     setStartDate(project ? moment(project.startDate) : moment());
     setEndDate(project ? moment(project.endDate) : moment().add(6, "months"));
-    setFRRespID(project?.frresp?.id);
-    setFRGoal(project?.frgoal);
-    setFirstPingDate(
-      (project?.firstPingDate && moment(project.firstPingDate)) || null
-    );
-    setSecondPingDate(
-      (project?.secondPingDate && moment(project.secondPingDate)) || null
-    );
+    setResponsibleId(project?.responsible?.id);
+    setGoal(project?.goal);
 
     // optional and predefined fields are always valid
     setNameIsValid(project ? true : false);
-    setCategoryIsValid(project ? true : false);
+    setCategoryIdIsValid(project ? true : false);
     setTypeIsValid(true);
     setStartDateIsValid(true);
     setEndDateIsValid(true);
-    setFRRespIDIsValid(project ? true : false);
-    setFRGoalIsValid(true);
-    setFirstPingDateIsValid(true);
-    setSecondPingDateIsValid(true);
+    setResponsibleIdIsValid(project ? true : false);
+    setGoalIsValid(true);
 
     fetchExistingUsers();
     fetchExistingProjects();
+    fetchExistingCategories();
   }, [openModal]);
 
   return (
@@ -313,33 +324,32 @@ export default function ProjectForm({
               />
 
               <Autocomplete
-                options={existingProjects
-                  .map((project) => project.category)
-                  .filter(
-                    (category, index, array) =>
-                      array.indexOf(category) === index
-                  )
-                  .sort((a, b) => {
-                    return a.localeCompare(b);
-                  })}
-                filterOptions={(options, { inputValue }) =>
-                  options.filter((option) =>
-                    option.toLowerCase().includes(inputValue.toLowerCase())
-                  )
-                }
+                options={existingCategories}
                 clearOnEscape
                 openOnFocus
-                freeSolo
-                inputValue={category || ""}
-                onInputChange={(event, value) => {
-                  setCategory(value);
-                  setCategoryIsValid(value.length >= 2 && value.length <= 35);
+                value={
+                  existingCategories.find((cat) => cat.id === categoryId) ||
+                  null
+                }
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                filterOptions={(options, { inputValue }) =>
+                  options.filter((option) =>
+                    option.name.toLowerCase().includes(inputValue.toLowerCase())
+                  )
+                }
+                onChange={(e, inputValue) => {
+                  setCategoryId(inputValue?.id);
+                  setCategoryIdIsValid(
+                    existingCategories
+                      .map((option) => option.id)
+                      .includes(inputValue?.id)
+                  );
                 }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
                     label="Category"
-                    placeholder="Hackathon"
                     required
                     fullWidth
                     margin="dense"
@@ -442,21 +452,21 @@ export default function ProjectForm({
                 options={existingUsers}
                 clearOnEscape
                 openOnFocus
-                value={existingUsers.find((u) => u.id === FRRespID) || null}
-                getOptionLabel={(option) =>
-                  option.firstName + " " + option.lastName
+                value={
+                  existingUsers.find((u) => u.id === responsibleId) || null
                 }
+                getOptionLabel={(option) => option.name + " " + option.surname}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
                 filterOptions={(options, { inputValue }) =>
                   options.filter((option) =>
-                    (option.firstName + " " + option.lastName)
+                    (option.name + " " + option.surname)
                       .toLowerCase()
                       .includes(inputValue.toLowerCase())
                   )
                 }
                 onChange={(e, inputValue) => {
-                  setFRRespID(inputValue?.id);
-                  setFRRespIDIsValid(
+                  setResponsibleId(inputValue?.id);
+                  setResponsibleIdIsValid(
                     existingUsers
                       .map((option) => option.id)
                       .includes(inputValue?.id)
@@ -474,11 +484,11 @@ export default function ProjectForm({
               />
 
               <TextInput
-                labelText={"FR goal"}
+                labelText={"Goal"}
                 inputType={"number"}
                 placeholderText={"10000"}
                 helperText={{
-                  error: "FR goal (if present) must be between 1 and 999999",
+                  error: "Goal (if present) must be between 1 and 999999",
                   details: "",
                 }}
                 inputProps={{
@@ -497,73 +507,10 @@ export default function ProjectForm({
                       input.length <= 6)
                   );
                 }}
-                value={FRGoal}
-                setValue={setFRGoal}
-                valueIsValid={FRGoalIsValid}
-                setValueIsValid={setFRGoalIsValid}
-              />
-
-              <DatePicker
-                label="First ping date"
-                displayWeekNumber
-                format="DD.MM.YYYY."
-                value={firstPingDate}
-                minDate={startDate}
-                maxDate={endDate}
-                onChange={(date) => {
-                  const input = date;
-                  if (
-                    input === null ||
-                    (input.isAfter(startDate) && input.isBefore(endDate))
-                  ) {
-                    setFirstPingDateIsValid(true);
-                  } else {
-                    setFirstPingDateIsValid(false);
-                  }
-
-                  setFirstPingDate(input);
-                }}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    margin: "dense",
-                    helperText:
-                      !firstPingDateIsValid &&
-                      "Date must be between project start and end date",
-                    error: !firstPingDateIsValid,
-                  },
-                }}
-              />
-              <DatePicker
-                label="Second ping date"
-                displayWeekNumber
-                format="DD.MM.YYYY."
-                value={secondPingDate}
-                minDate={firstPingDate || startDate}
-                maxDate={endDate}
-                onChange={(date) => {
-                  const input = date;
-                  if (
-                    input === null ||
-                    (input.isAfter(startDate) && input.isBefore(endDate))
-                  ) {
-                    setSecondPingDateIsValid(true);
-                  } else {
-                    setSecondPingDateIsValid(false);
-                  }
-
-                  setSecondPingDate(input);
-                }}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    margin: "dense",
-                    helperText:
-                      !secondPingDateIsValid &&
-                      "Date must be between project start and end date",
-                    error: !secondPingDateIsValid,
-                  },
-                }}
+                value={goal}
+                setValue={setGoal}
+                valueIsValid={goalIsValid}
+                setValueIsValid={setGoalIsValid}
               />
             </Box>
 
@@ -592,13 +539,11 @@ export default function ProjectForm({
                 disabled={
                   !(
                     nameIsValid &&
-                    categoryIsValid &&
+                    categoryIdIsValid &&
                     startDateIsValid &&
                     endDateIsValid &&
-                    FRRespIDIsValid &&
-                    FRGoalIsValid &&
-                    firstPingDateIsValid &&
-                    secondPingDateIsValid
+                    responsibleIdIsValid &&
+                    goalIsValid
                   )
                 }
                 // TODO: replace when this form is refractored

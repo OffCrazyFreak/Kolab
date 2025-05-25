@@ -24,11 +24,11 @@ const tableColumns = [
     label: "Company name",
   },
   {
-    key: "sector",
-    label: "Sector",
+    key: "industry",
+    label: "Industry",
   },
   {
-    key: "abcCategory",
+    key: "categorization",
     label: "ABC categorization",
     xsHide: true,
   },
@@ -38,7 +38,7 @@ const tableColumns = [
     xsHide: true,
   },
   {
-    key: "webUrl",
+    key: "webLink",
     label: "Webpage URL",
     xsHide: true,
   },
@@ -65,9 +65,9 @@ export default function Companies() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch("/api/companies/", {
+      const serverResponse = await fetch("/api/companies", {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
 
       if (serverResponse.ok) {

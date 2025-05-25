@@ -68,32 +68,8 @@ const tableColumns = [
     notSortable: true,
     centerContent: true,
     xsHide: true,
-    mdHide: true,
-  },
-  {
-    key: "achievedValue",
-    label: "Value",
-    xsHide: true,
-  },
-  {
-    key: "comment",
-    label: "Comment",
-    xsHide: true,
-    mdHide: true,
-    showTooltip: true,
   },
 ];
-
-function handleEditContact(e, id) {
-  // TODO: make a PUT request na /companies/{id}/contacts/{id} and then update contacts list
-  console.log("Editing a contact is not yet implemented!");
-  // setEditFormModal(true);
-}
-
-function handleDeleteContact(e, id) {
-  // TODO: make a DELETE request na /companies/{id}/contacts/{id} and then update contacts list
-  console.log("Deleting a contact is not yet implemented!");
-}
 
 export default function Company() {
   const { companyId } = useParams();
@@ -105,15 +81,17 @@ export default function Company() {
 
   const [openCompanyFormModal, setOpenCompanyFormModal] = useState(false);
   const [company, setCompany] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [collaborations, setCollaborations] = useState([]);
+
   const [openContactFormModal, setOpenContactFormModal] = useState(false);
   const [contact, setContact] = useState();
+
   const [openCollaborationFormModal, setOpenCollaborationFormModal] =
     useState(false);
   const [collaboration, setCollaboration] = useState();
 
   const [searchResults, setSearchResults] = useState([]);
-
-  const [loadingSoftLockButton, setLoadingSoftLockButton] = useState(false);
 
   async function fetchCompany() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
@@ -121,19 +99,11 @@ export default function Company() {
     try {
       const serverResponse = await fetch("/api/companies/" + companyId, {
         method: "GET",
-        headers: { googleTokenEncoded: JWToken.credential },
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
       });
       if (serverResponse.ok) {
         const json = await serverResponse.json();
-
         setCompany(json);
-        setSearchResults(
-          json.collaborations
-            .map((collaboration) => {
-              return collaboration.name;
-            })
-            .sort((a, b) => (b.priority ? 1 : -1)) // sort the rows by prirority attribute on first load
-        );
       } else {
         handleOpenToast({
           type: "error",
@@ -144,6 +114,64 @@ export default function Company() {
       handleOpenToast({
         type: "error",
         info: "An error occurred whilst trying to connect to server.",
+      });
+    }
+  }
+
+  async function fetchContacts() {
+    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
+    try {
+      const contactsResponse = await fetch(
+        `/api/companies/${companyId}/contacts`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${JWToken.credential}` },
+        }
+      );
+
+      if (contactsResponse.ok) {
+        const contactsJson = await contactsResponse.json();
+        setContacts(contactsJson);
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "Failed to fetch company contacts.",
+        });
+      }
+    } catch (error) {
+      handleOpenToast({
+        type: "error",
+        info: "An error occurred whilst trying to fetch contacts.",
+      });
+    }
+  }
+
+  async function fetchCollaborations() {
+    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
+    try {
+      const collaborationsResponse = await fetch(
+        `/api/companies/${companyId}/collaborations`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${JWToken.credential}` },
+        }
+      );
+
+      if (collaborationsResponse.ok) {
+        const collaborationsJson = await collaborationsResponse.json();
+        setCollaborations(collaborationsJson);
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "Failed to fetch company collaborations.",
+        });
+      }
+    } catch (error) {
+      handleOpenToast({
+        type: "error",
+        info: "An error occurred whilst trying to fetch collaborations.",
       });
     }
   }
@@ -164,41 +192,20 @@ export default function Company() {
     setOpenDeleteAlert(true);
   }
 
-  async function handleSoftLockCompany() {
-    setLoadingSoftLockButton(true);
+  function handleEditContact(contact) {
+    setContact(contact);
+    setOpenContactFormModal(true);
+  }
 
-    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+  function handleDeleteContact(contact) {
+    setObject({
+      type: "Contact",
+      name: contact.firstName + " " + contact.lastName,
+    });
+    setEndpoint("/api/companies/" + company.id + "/contacts/" + contact.id);
+    setFetchUpdatedData({ function: fetchContacts });
 
-    try {
-      const serverResponse = await fetch(
-        "/api/companies/" + company.id + "/softLock",
-        {
-          method: "PATCH",
-          headers: { googleTokenEncoded: JWToken.credential },
-        }
-      );
-      if (serverResponse.ok) {
-        const json = await serverResponse.json();
-        company.softLocked = json;
-
-        handleOpenToast({
-          type: "success",
-          info: `Company ${company.name} soft locked.`,
-        });
-      } else {
-        handleOpenToast({
-          type: "error",
-          info: "A server error occurred whilst soft locking.",
-        });
-      }
-    } catch (error) {
-      handleOpenToast({
-        type: "error",
-        info: "An error occurred whilst trying to connect to server.",
-      });
-    }
-
-    setLoadingSoftLockButton(false);
+    setOpenDeleteAlert(true);
   }
 
   function handleEditCollaboration(collaboration) {
@@ -216,6 +223,8 @@ export default function Company() {
 
   useEffect(() => {
     fetchCompany();
+    fetchContacts();
+    fetchCollaborations();
   }, []);
 
   return (
@@ -230,8 +239,9 @@ export default function Company() {
       <ContactForm
         openModal={openContactFormModal}
         setOpenModal={setOpenContactFormModal}
-        fetchUpdatedData={fetchCompany}
+        fetchUpdatedData={fetchContacts}
         object={contact}
+        companyId={companyId}
       />
 
       <CollaborationForm
@@ -292,38 +302,9 @@ export default function Company() {
                 gap: 0.5,
               }}
             >
-              <Tooltip
-                title={company.softLocked ? "Soft unlock" : "Soft lock"}
-                key="Soft lock"
-              >
-                <IconButton
-                  size="small"
-                  onClick={handleSoftLockCompany}
-                  sx={{
-                    color: "white",
-                    backgroundColor: "#1976d2",
-
-                    borderRadius: 1,
-                  }}
-                >
-                  {loadingSoftLockButton ? (
-                    <CircularProgress
-                      size={17}
-                      sx={{
-                        color: "white",
-                      }}
-                    />
-                  ) : company.softLocked ? (
-                    <LockOpenIcon />
-                  ) : (
-                    <LockIcon />
-                  )}
-                </IconButton>
-              </Tooltip>
               <Tooltip title="Edit" key="Edit">
                 <IconButton
                   size="small"
-                  disabled={company.softLocked}
                   onClick={handleEditCompany}
                   sx={{
                     color: "white",
@@ -338,7 +319,6 @@ export default function Company() {
               <Tooltip title="Delete" key="Delete">
                 <IconButton
                   size="small"
-                  disabled={company.softLocked}
                   onClick={handleDeleteCompany}
                   sx={{
                     color: "white",
@@ -384,12 +364,14 @@ export default function Company() {
               <AccordionDetails>
                 <List dense>
                   <ListItem disablePadding>
-                    <ListItemText primary={"Sector: " + company.sector} />
+                    <ListItemText
+                      primary={"Industry: " + company.industry?.name}
+                    />
                   </ListItem>
 
                   <ListItem disablePadding>
                     <ListItemText
-                      primary={"ABC Category: " + company.abcCategory}
+                      primary={"ABC Category: " + company.categorization}
                     />
                   </ListItem>
 
@@ -406,7 +388,7 @@ export default function Company() {
                   </ListItem>
 
                   <ListItem disablePadding>
-                    <ListItemText primary={"Town: " + company.townName} />
+                    <ListItemText primary={"City: " + company.city} />
                   </ListItem>
 
                   <ListItem disablePadding>
@@ -416,17 +398,17 @@ export default function Company() {
                   <ListItem disablePadding>
                     <ListItemText
                       primary={
-                        <Typography sx={{ fontSize: 10.5 }}>
+                        <>
                           Web:{" "}
                           <Link
-                            href={company.webURL}
+                            href={company.webLink}
                             underline="hover"
                             target="_blank"
                             rel="noopener"
                           >
-                            {company.webURL}
+                            {company.webLink}
                           </Link>
-                        </Typography>
+                        </>
                       }
                     />
                   </ListItem>
@@ -471,7 +453,7 @@ export default function Company() {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                {company.contacts?.map((contact) => (
+                {contacts?.map((contact) => (
                   <Box key={contact.id} sx={{ marginBlock: 2 }}>
                     <Box
                       sx={{
@@ -485,9 +467,8 @@ export default function Company() {
                       </Typography>
                       <Box>
                         <IconButton
-                          disabled={company.softLocked}
                           aria-label="edit contact"
-                          onClick={(e) => handleEditContact(e, contact.id)}
+                          onClick={() => handleEditContact(contact)}
                           sx={{
                             width: 20,
                             height: 20,
@@ -508,9 +489,8 @@ export default function Company() {
                         </IconButton>
 
                         <IconButton
-                          disabled={company.softLocked}
                           aria-label="delete contact"
-                          onClick={(e) => handleDeleteContact(e, contact.id)}
+                          onClick={() => handleDeleteContact(contact)}
                           sx={{
                             width: 20,
                             height: 20,
@@ -539,9 +519,7 @@ export default function Company() {
                         </ListItemIcon>
                         <ListItemText
                           primary={contact.email}
-                          sx={{
-                            overflow: "hidden",
-                          }}
+                          sx={{ overflow: "hidden", marginLeft: 1 }}
                         />
                       </ListItem>
 
@@ -550,8 +528,8 @@ export default function Company() {
                           <PhoneIcon />
                         </ListItemIcon>
                         <ListItemText
-                          primary={contact.tel}
-                          sx={{ overflow: "hidden" }}
+                          primary={contact.phone}
+                          sx={{ overflow: "hidden", marginLeft: 1 }}
                         />
                       </ListItem>
 
@@ -561,17 +539,7 @@ export default function Company() {
                         </ListItemIcon>
                         <ListItemText
                           primary={contact.position}
-                          sx={{ overflow: "hidden" }}
-                        />
-                      </ListItem>
-
-                      <ListItem disablePadding>
-                        <ListItemIcon sx={{ minWidth: 25 }}>
-                          <DescriptionIcon />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={contact.description}
-                          sx={{ overflow: "hidden" }}
+                          sx={{ overflow: "hidden", marginLeft: 1 }}
                         />
                       </ListItem>
                     </List>
@@ -613,7 +581,7 @@ export default function Company() {
           >
             <SearchBar
               type="collaborations"
-              data={company.collaborations}
+              data={collaborations}
               setSearchResults={setSearchResults}
             />
 

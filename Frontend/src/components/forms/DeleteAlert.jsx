@@ -34,7 +34,7 @@ export default function DeleteAlert() {
     let serverResponse = await fetch(endpoint, {
       method: "DELETE",
       headers: {
-        googleTokenEncoded: JWToken.credential,
+        Authorization: `Bearer ${JWToken.credential}`,
       },
     });
 

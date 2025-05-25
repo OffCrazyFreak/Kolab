@@ -33,17 +33,15 @@ export default function ContactForm({
       firstName: null,
       lastName: null,
       email: null,
-      tel: null,
+      phone: null,
       position: null,
-      description: null,
     },
     validation: {
       firstNameIsValid: false,
       lastNameIsValid: false,
       emailIsValid: false,
-      telIsValid: true,
-      positionIsValid: true,
-      descriptionIsValid: true,
+      phoneIsValid: true,
+      positionIsValid: false,
     },
   });
 
@@ -61,16 +59,14 @@ export default function ContactForm({
     setLoadingButton(true);
 
     // object destructuring
-    const { firstName, lastName, email, tel, position, description } =
-      formData.entity;
+    const { firstName, lastName, email, phone, position } = formData.entity;
 
     const contactData = {
       firstName: firstName?.trim(),
       lastName: lastName?.trim(),
       email: email?.trim(),
-      tel: tel?.trim(),
+      phone: phone?.trim(),
       position: position?.trim(),
-      description: description?.trim(),
     };
 
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
@@ -78,14 +74,14 @@ export default function ContactForm({
     const request = {
       method: contact ? "PUT" : "POST",
       headers: {
-        googleTokenEncoded: JWToken.credential,
+        Authorization: `Bearer ${JWToken.credential}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(contactData),
     };
 
     const serverResponse = await fetch(
-      `/api/company/${companyId}/${contact?.id ?? ""}`,
+      `/api/companies/${companyId}/contacts${contact ? "/" + contact.id : ""}`,
       request
     );
 
@@ -135,9 +131,8 @@ export default function ContactForm({
         firstNameIsValid: contact ? true : false,
         lastNameIsValid: contact ? true : false,
         emailIsValid: contact ? true : false,
-        telIsValid: true,
-        positionIsValid: true,
-        descriptionIsValid: true,
+        phoneIsValid: true,
+        positionIsValid: contact ? true : false,
       },
     });
   }, [openModal]);
@@ -198,7 +193,7 @@ export default function ContactForm({
                 isRequired
                 placeholderText={"Jane"}
                 helperText={{
-                  error: "Name must be between 2 and 35 characters",
+                  error: "First name must be between 2 and 35 characters",
                   details: "",
                 }}
                 inputProps={{
@@ -256,14 +251,14 @@ export default function ContactForm({
               />
 
               <CustomTextField
-                labelText={"Tel"}
+                labelText={"Phone"}
                 placeholderText={"+385987654321"}
                 helperText={{
-                  error: "Invalid tel or tel length",
+                  error: "Invalid phone or phone length",
                   details: "",
                 }}
                 inputProps={{
-                  name: "tel",
+                  name: "phone",
                   minLength: 6,
                   maxLength: 55,
                 }}
@@ -282,6 +277,7 @@ export default function ContactForm({
 
               <CustomTextField
                 labelText={"Position"}
+                isRequired
                 placeholderText={"PR"}
                 helperText={{
                   error: "Position must be under 35 characters",
@@ -293,25 +289,6 @@ export default function ContactForm({
                 }}
                 validationFunction={(input) => {
                   return input.trim().length <= 35;
-                }}
-                formData={formData}
-                setFormData={setFormData}
-              />
-
-              <CustomTextField
-                labelText={"Description"}
-                textFieldProps={{
-                  multiline: true,
-                  minRows: 2,
-                  maxRows: 5,
-                }}
-                helperText={{
-                  error: "Description must be under 475 characters",
-                  details: "",
-                }}
-                inputProps={{ name: "description", maxLength: 475 }}
-                validationFunction={(input) => {
-                  return input.trim().length <= 475;
                 }}
                 formData={formData}
                 setFormData={setFormData}
