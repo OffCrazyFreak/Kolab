@@ -26,9 +26,11 @@ Licensed under GNU GPL v3 license.
 
 1. Install all the required prerequisites listed above
 2. Create a PostgreSQL database:
-   ```sql
-   CREATE DATABASE your_database_name;
-   ```
+
+```sql
+CREATE DATABASE your_database_name;
+```
+
 3. Configure environment variables:
 
 - Navigate to the Backend folder
@@ -41,9 +43,10 @@ Licensed under GNU GPL v3 license.
   ```
 
 4. Run the backend server:
-   ```bash
-   mvn spring-boot:run
-   ```
+
+```bash
+mvn spring-boot:run
+```
 
 This will create all necessary database tables automatically.
 
