@@ -36,11 +36,12 @@ CREATE DATABASE your_database_name;
 - Navigate to the Backend folder
 - Copy .env.example to a new file named .env
 - Update the following variables in .env:
-  ```bash
-  SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/your_database_name
-  SPRING_DATASOURCE_USERNAME=your_postgres_username
-  SPRING_DATASOURCE_PASSWORD=your_postgres_password
-  ```
+
+```bash
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/your_database_name
+SPRING_DATASOURCE_USERNAME=your_postgres_username
+SPRING_DATASOURCE_PASSWORD=your_postgres_password
+```
 
 4. Run the backend server:
 
