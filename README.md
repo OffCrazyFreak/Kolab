@@ -41,10 +41,9 @@ Licensed under GNU GPL v3 license.
   ```
 
 4. Run the backend server:
-
-```bash
-mvn spring-boot:run
-```
+   ```bash
+   mvn spring-boot:run
+   ```
 
 This will create all necessary database tables automatically.
 
