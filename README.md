@@ -35,13 +35,9 @@ Licensed under GNU GPL v3 license.
 - Copy .env.example to a new file named .env
 - Update the following variables in .env:
   ```bash
-  SPRING_DATASOURCE_URL=jdbc:postgres
-  ql://localhost:5432/
-  your_database_name
-  SPRING_DATASOURCE_USERNAME=your_pos
-  tgres_username
-  SPRING_DATASOURCE_PASSWORD=your_pos
-  tgres_password
+  SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/your_database_name
+  SPRING_DATASOURCE_USERNAME=your_postgres_username
+  SPRING_DATASOURCE_PASSWORD=your_postgres_password
   ```
 
 4. Run the backend server:
