@@ -51,7 +51,7 @@ This will create all necessary database tables automatically. 5. Create the init
 - Open your browser and navigate to the Swagger documentation at localhost:8080/api-docs
 - Use the appropriate endpoint to create your first user with email that you can login via google
 
-### ### Frontend Setup
+### Frontend Setup
 
 1. Open a terminal and navigate to the Frontend directory:
 
