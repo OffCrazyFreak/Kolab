@@ -12,8 +12,8 @@ Licensed under GNU GPL v3 license.
 
 ### Backend Requirements
 
-- Java JDK 17
-- Gradle
+- Java JDK 21
+- Maven 3.9.9
 - PostgreSQL
 
 ### Frontend Requirements
