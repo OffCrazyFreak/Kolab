@@ -44,7 +44,7 @@ import TableComponent from "./partial/TableComponent";
 
 const tableColumns = [
   {
-    key: "name",
+    key: "project",
     label: "Project name",
   },
   {
@@ -80,7 +80,7 @@ export default function Company() {
     useContext(DeleteAlertContext);
 
   const [openCompanyFormModal, setOpenCompanyFormModal] = useState(false);
-  const [company, setCompany] = useState([]);
+  const [company, setCompany] = useState();
   const [contacts, setContacts] = useState([]);
   const [collaborations, setCollaborations] = useState([]);
 
@@ -151,7 +151,7 @@ export default function Company() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const collaborationsResponse = await fetch(
+      const response = await fetch(
         `/api/companies/${companyId}/collaborations`,
         {
           method: "GET",
@@ -159,9 +159,11 @@ export default function Company() {
         }
       );
 
-      if (collaborationsResponse.ok) {
-        const collaborationsJson = await collaborationsResponse.json();
-        setCollaborations(collaborationsJson);
+      if (response.ok) {
+        const json = await response.json();
+
+        setCollaborations(json);
+        setSearchResults(json);
       } else {
         handleOpenToast({
           type: "error",
@@ -241,16 +243,16 @@ export default function Company() {
         setOpenModal={setOpenContactFormModal}
         fetchUpdatedData={fetchContacts}
         object={contact}
-        companyId={companyId}
+        company={company}
       />
 
       <CollaborationForm
         openModal={openCollaborationFormModal}
         setOpenModal={setOpenCollaborationFormModal}
-        fetchUpdatedData={fetchCompany}
+        fetchUpdatedData={fetchCollaborations}
         object={collaboration}
-        project={null}
-        company={company}
+        projectId={null}
+        companyId={company?.id}
       />
 
       <Box
@@ -333,235 +335,238 @@ export default function Company() {
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              marginBottom: 2,
-              marginInline: 2,
-            }}
-          >
-            <Typography
-              variant="h4"
-              gutterBottom
+          {company && (
+            <Box
               sx={{
-                fontWeight: 500,
-                textAlign: "center",
-                textTransform: "uppercase",
+                marginBottom: 2,
+                marginInline: 2,
               }}
             >
-              {company.name}
-            </Typography>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                  fontWeight: 500,
+                  textAlign: "center",
+                  textTransform: "uppercase",
+                }}
+              >
+                {company.name}
+              </Typography>
 
-            <Accordion defaultExpanded sx={{ marginBlock: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography
-                  sx={{
-                    textTransform: "uppercase",
-                  }}
-                >
-                  COMPANY INFO
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <List dense>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={"Industry: " + company.industry?.name}
-                    />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={"ABC Category: " + company.categorization}
-                    />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={
-                        "Budget planning month: " + company.budgetPlanningMonth
-                      }
-                    />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText primary={"Country: " + company.country} />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText primary={"City: " + company.city} />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText primary={"Zip code: " + company.zip} />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText primary={"Address: " + company.address} />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={
-                        <>
-                          Web:{" "}
-                          <Link
-                            href={company.webLink}
-                            underline="hover"
-                            target="_blank"
-                            rel="noopener"
-                          >
-                            {company.webLink}
-                          </Link>
-                        </>
-                      }
-                    />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={"Description: " + company.description || ""}
-                      sx={{ maxHeight: 60, overflowY: "auto" }}
-                    />
-                  </ListItem>
-                </List>
-
-                {company.contactInFuture === false && (
+              <Accordion defaultExpanded sx={{ marginBlock: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Typography
                     sx={{
-                      marginTop: 1,
-
-                      fontWeight: 700,
-                      fontSize: "1.375rem",
-                      textAlign: "center",
-                      color: "red",
+                      textTransform: "uppercase",
                     }}
                   >
-                    DO NOT CONTACT
+                    COMPANY INFO
                   </Typography>
-                )}
-              </AccordionDetails>
-            </Accordion>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <List dense>
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary={"Industry: " + company.industry?.name}
+                      />
+                    </ListItem>
 
-            <Accordion
-              sx={{
-                marginBlock: 2,
-              }}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography
-                  sx={{
-                    textTransform: "uppercase",
-                  }}
-                >
-                  CONTACTS
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                {contacts?.map((contact) => (
-                  <Box key={contact.id} sx={{ marginBlock: 2 }}>
-                    <Box
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary={"ABC Category: " + company.categorization}
+                      />
+                    </ListItem>
+
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary={
+                          "Budget planning month: " +
+                          company.budgetPlanningMonth
+                        }
+                      />
+                    </ListItem>
+
+                    <ListItem disablePadding>
+                      <ListItemText primary={"Country: " + company.country} />
+                    </ListItem>
+
+                    <ListItem disablePadding>
+                      <ListItemText primary={"City: " + company.city} />
+                    </ListItem>
+
+                    <ListItem disablePadding>
+                      <ListItemText primary={"Zip code: " + company.zip} />
+                    </ListItem>
+
+                    <ListItem disablePadding>
+                      <ListItemText primary={"Address: " + company.address} />
+                    </ListItem>
+
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary={
+                          <>
+                            Web:{" "}
+                            <Link
+                              href={company.webLink}
+                              underline="hover"
+                              target="_blank"
+                              rel="noopener"
+                            >
+                              {company.webLink}
+                            </Link>
+                          </>
+                        }
+                      />
+                    </ListItem>
+
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary={"Description: " + company.description || ""}
+                        sx={{ maxHeight: 60, overflowY: "auto" }}
+                      />
+                    </ListItem>
+                  </List>
+
+                  {company.contactInFuture === false && (
+                    <Typography
                       sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        marginTop: 1,
+
+                        fontWeight: 700,
+                        fontSize: "1.375rem",
+                        textAlign: "center",
+                        color: "red",
                       }}
                     >
-                      <Typography>
-                        {contact.firstName + " " + contact.lastName}
-                      </Typography>
-                      <Box>
-                        <IconButton
-                          aria-label="edit contact"
-                          onClick={() => handleEditContact(contact)}
-                          sx={{
-                            width: 20,
-                            height: 20,
+                      DO NOT CONTACT
+                    </Typography>
+                  )}
+                </AccordionDetails>
+              </Accordion>
 
-                            margin: 0.125,
-
-                            color: "white",
-                            backgroundColor: "#1976d2",
-                            borderRadius: 1,
-                          }}
-                        >
-                          <EditIcon
-                            sx={{
-                              width: 15,
-                              height: 15,
-                            }}
-                          />
-                        </IconButton>
-
-                        <IconButton
-                          aria-label="delete contact"
-                          onClick={() => handleDeleteContact(contact)}
-                          sx={{
-                            width: 20,
-                            height: 20,
-
-                            margin: 0.125,
-
-                            color: "white",
-                            backgroundColor: "#1976d2",
-                            borderRadius: 1,
-                          }}
-                        >
-                          <DeleteIcon
-                            sx={{
-                              width: 15,
-                              height: 15,
-                            }}
-                          />
-                        </IconButton>
-                      </Box>
-                    </Box>
-
-                    <List dense>
-                      <ListItem disablePadding>
-                        <ListItemIcon sx={{ minWidth: 25 }}>
-                          <EmailIcon />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={contact.email}
-                          sx={{ overflow: "hidden", marginLeft: 1 }}
-                        />
-                      </ListItem>
-
-                      <ListItem disablePadding>
-                        <ListItemIcon sx={{ minWidth: 25 }}>
-                          <PhoneIcon />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={contact.phone}
-                          sx={{ overflow: "hidden", marginLeft: 1 }}
-                        />
-                      </ListItem>
-
-                      <ListItem disablePadding>
-                        <ListItemIcon sx={{ minWidth: 25 }}>
-                          <WorkIcon />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={contact.position}
-                          sx={{ overflow: "hidden", marginLeft: 1 }}
-                        />
-                      </ListItem>
-                    </List>
-                  </Box>
-                ))}
-
-                <Box sx={{ display: "grid", placeItems: "center" }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleIcon />}
-                    onClick={() => setOpenContactFormModal(true)}
+              <Accordion
+                sx={{
+                  marginBlock: 2,
+                }}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography
+                    sx={{
+                      textTransform: "uppercase",
+                    }}
                   >
-                    Add contact
-                  </Button>
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-          </Box>
+                    CONTACTS
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {contacts?.map((contact) => (
+                    <Box key={contact.id} sx={{ marginBlock: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography>
+                          {contact.firstName + " " + contact.lastName}
+                        </Typography>
+                        <Box>
+                          <IconButton
+                            aria-label="edit contact"
+                            onClick={() => handleEditContact(contact)}
+                            sx={{
+                              width: 20,
+                              height: 20,
+
+                              margin: 0.125,
+
+                              color: "white",
+                              backgroundColor: "#1976d2",
+                              borderRadius: 1,
+                            }}
+                          >
+                            <EditIcon
+                              sx={{
+                                width: 15,
+                                height: 15,
+                              }}
+                            />
+                          </IconButton>
+
+                          <IconButton
+                            aria-label="delete contact"
+                            onClick={() => handleDeleteContact(contact)}
+                            sx={{
+                              width: 20,
+                              height: 20,
+
+                              margin: 0.125,
+
+                              color: "white",
+                              backgroundColor: "#1976d2",
+                              borderRadius: 1,
+                            }}
+                          >
+                            <DeleteIcon
+                              sx={{
+                                width: 15,
+                                height: 15,
+                              }}
+                            />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      <List dense>
+                        <ListItem disablePadding>
+                          <ListItemIcon sx={{ minWidth: 25 }}>
+                            <EmailIcon />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={contact.email}
+                            sx={{ overflow: "hidden", marginLeft: 1 }}
+                          />
+                        </ListItem>
+
+                        <ListItem disablePadding>
+                          <ListItemIcon sx={{ minWidth: 25 }}>
+                            <PhoneIcon />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={contact.phone}
+                            sx={{ overflow: "hidden", marginLeft: 1 }}
+                          />
+                        </ListItem>
+
+                        <ListItem disablePadding>
+                          <ListItemIcon sx={{ minWidth: 25 }}>
+                            <WorkIcon />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={contact.position}
+                            sx={{ overflow: "hidden", marginLeft: 1 }}
+                          />
+                        </ListItem>
+                      </List>
+                    </Box>
+                  ))}
+
+                  <Box sx={{ display: "grid", placeItems: "center" }}>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddCircleIcon />}
+                      onClick={() => setOpenContactFormModal(true)}
+                    >
+                      Add contact
+                    </Button>
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            </Box>
+          )}
         </Box>
 
         {/* collaborations */}
@@ -603,7 +608,7 @@ export default function Company() {
           </Container>
 
           <Container maxWidth="false">
-            {company.collaborations?.length <= 0 ? (
+            {collaborations?.length <= 0 ? (
               <Typography variant="h4" align="center">
                 {"No collaborations :("}
               </Typography>

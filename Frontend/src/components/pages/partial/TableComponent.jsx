@@ -77,16 +77,18 @@ export default function TableComponent({
   }
 
   function getFormatedCellValue(column, value) {
+    // console.log(column, value);
+
     if (column.key === "responsible") {
       return value.name + " " + value.surname;
+    } else if (column.key === "contact") {
+      return value.firstName + " " + value.lastName;
     } else if (column.key === "webUrl") {
       return (
         <Link href={value} target="_blank">
           {value}
         </Link>
       );
-    } else if (column.key === "category" || column.key === "industry") {
-      return value.name;
     } else if (column.key === "endDate") {
       return moment(value).format("DD.MM.YYYY.");
     } else if (column.key === "comment") {
@@ -97,6 +99,7 @@ export default function TableComponent({
       );
     } else if (
       column.key === "category" &&
+      typeof value !== "object" &&
       (value.includes("FINANCIAL") ||
         value.includes("MATERIAL") ||
         value.includes("ACADEMIC"))
@@ -148,13 +151,13 @@ export default function TableComponent({
         case "CONTACTED":
           icon = <CallIcon {...iconAttributes} />;
           break;
-        case "PINGED":
+        case "PING":
           icon = <RepeatIcon {...iconAttributes} />;
           break;
-        case "OFFER_SENT":
+        case "LETTER":
           icon = <EmailIcon {...iconAttributes} />;
           break;
-        case "MEETING_HELD":
+        case "MEETING":
           icon = <WorkIcon {...iconAttributes} />;
           break;
         case "SUCCESSFUL":
@@ -170,6 +173,13 @@ export default function TableComponent({
       }
 
       return <Tooltip title={tooltipText}>{icon}</Tooltip>;
+    } else if (
+      column.key === "category" ||
+      column.key === "industry" ||
+      column.key === "company" ||
+      column.key === "project"
+    ) {
+      return value.name;
     } else {
       return value;
     }

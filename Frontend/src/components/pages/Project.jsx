@@ -40,7 +40,7 @@ import TableComponent from "./partial/TableComponent";
 
 const tableColumns = [
   {
-    key: "name",
+    key: "company",
     label: "Company name",
   },
   {
@@ -67,11 +67,6 @@ const tableColumns = [
   },
 ];
 
-function handleRemoveProjectMember(e, id) {
-  // TODO: make a DELETE request na /projects/{id}/teamMembers/{id} and then update frTeamMembers list
-  console.log("Deleting a team member is not yet implemented!");
-}
-
 export default function Project() {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -81,7 +76,7 @@ export default function Project() {
     useContext(DeleteAlertContext);
 
   const [openProjectFormModal, setOpenProjectFormModal] = useState(false);
-  const [project, setProject] = useState([]);
+  const [project, setProject] = useState();
   const [openCollaborationFormModal, setOpenCollaborationFormModal] =
     useState(false);
   const [collaboration, setCollaboration] = useState();
@@ -136,14 +131,8 @@ export default function Project() {
       if (serverResponse.ok) {
         const json = await serverResponse.json();
 
-        setCollaboration(json);
-        setSearchResults(
-          collaborations
-            .map((collaboration) => {
-              return collaboration.name;
-            })
-            .sort((a, b) => (b.priority ? 1 : -1)) // sort the rows by prirority attribute on first load
-        );
+        setCollaborations(json);
+        setSearchResults(json);
       } else {
         handleOpenToast({
           type: "error",
@@ -204,10 +193,10 @@ export default function Project() {
       <CollaborationForm
         openModal={openCollaborationFormModal}
         setOpenModal={setOpenCollaborationFormModal}
-        fetchUpdatedData={fetchProject}
+        fetchUpdatedData={fetchCollaborations}
         object={collaboration}
-        project={project}
-        company={null}
+        projectId={project?.id}
+        companyId={null}
       />
 
       <Box
@@ -290,91 +279,93 @@ export default function Project() {
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              marginBottom: 2,
-              marginInline: 2,
-            }}
-          >
-            <Typography
-              variant="h4"
-              gutterBottom
+          {project && (
+            <Box
               sx={{
-                fontWeight: 500,
-                textAlign: "center",
-                textTransform: "uppercase",
+                marginBottom: 2,
+                marginInline: 2,
               }}
             >
-              {project.name}
-            </Typography>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                  fontWeight: 500,
+                  textAlign: "center",
+                  textTransform: "uppercase",
+                }}
+              >
+                {project.name}
+              </Typography>
 
-            <Accordion defaultExpanded sx={{ marginBlock: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography
-                  sx={{
-                    textTransform: "uppercase",
-                  }}
-                >
-                  PROJECT INFO
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <List dense>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary="Project name"
-                      secondary={project.name}
-                    />
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary="Category"
-                      secondary={project.category?.name || "Not set"}
-                    />
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemText primary="Type" secondary={project.type} />
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary="Start date"
-                      secondary={
-                        project.startDate
-                          ? moment(project.startDate).format("DD.MM.YYYY")
-                          : "Not set"
-                      }
-                    />
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary="End date"
-                      secondary={
-                        project.endDate
-                          ? moment(project.endDate).format("DD.MM.YYYY")
-                          : "Not set"
-                      }
-                    />
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary="Responsible"
-                      secondary={
-                        project.responsible
-                          ? `${project.responsible.name} ${project.responsible.surname}`
-                          : "Not set"
-                      }
-                    />
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary="Goal"
-                      secondary={project.goal || "Not set"}
-                    />
-                  </ListItem>
-                </List>
-              </AccordionDetails>
-            </Accordion>
-          </Box>
+              <Accordion defaultExpanded sx={{ marginBlock: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography
+                    sx={{
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    PROJECT INFO
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <List dense>
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary="Project name"
+                        secondary={project.name}
+                      />
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary="Category"
+                        secondary={project.category?.name || "Not set"}
+                      />
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemText primary="Type" secondary={project.type} />
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary="Start date"
+                        secondary={
+                          project.startDate
+                            ? moment(project.startDate).format("DD.MM.YYYY")
+                            : "Not set"
+                        }
+                      />
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary="End date"
+                        secondary={
+                          project.endDate
+                            ? moment(project.endDate).format("DD.MM.YYYY")
+                            : "Not set"
+                        }
+                      />
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary="Responsible"
+                        secondary={
+                          project.responsible
+                            ? `${project.responsible.name} ${project.responsible.surname}`
+                            : "Not set"
+                        }
+                      />
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemText
+                        primary="Goal"
+                        secondary={project.goal || "Not set"}
+                      />
+                    </ListItem>
+                  </List>
+                </AccordionDetails>
+              </Accordion>
+            </Box>
+          )}
         </Box>
 
         {/* collaborations */}
@@ -398,7 +389,7 @@ export default function Project() {
           >
             <SearchBar
               type="collaborations"
-              data={project.collaborations}
+              data={collaborations}
               setSearchResults={setSearchResults}
             />
 
@@ -416,7 +407,7 @@ export default function Project() {
           </Container>
 
           <Container maxWidth="false">
-            {project.collaborations?.length <= 0 ? (
+            {collaborations?.length <= 0 ? (
               <Typography variant="h4" align="center">
                 {"No collaborations :("}
               </Typography>

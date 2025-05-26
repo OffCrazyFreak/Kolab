@@ -54,17 +54,17 @@ const statuses = [
     icon: <CallIcon sx={{ color: "#666" }} />,
   },
   {
-    value: "PINGED",
+    value: "PING",
     label: "Pinged",
     icon: <RepeatIcon sx={{ color: "#666" }} />,
   },
   {
-    value: "OFFER_SENT",
+    value: "LETTER",
     label: "Offer sent",
     icon: <EmailIcon sx={{ color: "#666" }} />,
   },
   {
-    value: "MEETING_HELD",
+    value: "MEETING",
     label: "Meeting held",
     icon: <WorkIcon sx={{ color: "#666" }} />,
   },
@@ -107,8 +107,8 @@ export default function CollaborationForm({
   fetchUpdatedData,
 
   object: collaboration,
-  project,
-  company,
+  projectId,
+  companyId,
 }) {
   const { handleOpenToast } = useContext(ToastContext);
 
@@ -262,32 +262,31 @@ export default function CollaborationForm({
     }
   }
 
-  async function fetchCompanyContacts() {
+  async function fetchContacts(fetchCompanyId) {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     try {
-      const serverResponse = await fetch(
-        "/api/companies/" + company?.id + "/contacts",
+      const contactsResponse = await fetch(
+        `/api/companies/${fetchCompanyId}/contacts`,
         {
           method: "GET",
           headers: { Authorization: `Bearer ${JWToken.credential}` },
         }
       );
 
-      if (serverResponse.ok) {
-        const json = await serverResponse.json();
-
-        setCompanyContacts(json);
+      if (contactsResponse.ok) {
+        const contactsJson = await contactsResponse.json();
+        setCompanyContacts(contactsJson);
       } else {
         handleOpenToast({
           type: "error",
-          info: "A server error occurred whilst fetching selected company contacts.",
+          info: "Failed to fetch company contacts.",
         });
       }
     } catch (error) {
       handleOpenToast({
         type: "error",
-        info: "An error occurred whilst trying to connect to server.",
+        info: "An error occurred whilst trying to fetch contacts.",
       });
     }
   }
@@ -307,25 +306,19 @@ export default function CollaborationForm({
 
     // object destructuring
     const {
-      projectId: project,
-      companyId: company,
-      contactId: contact,
-      responsibleId: responsible,
+      projectId,
+      companyId,
+      contactId,
+      responsibleId,
       category,
       status,
       comment,
       achievedValue,
     } = formData.entity;
 
-    const collaborationData = {
-      projectId: project.id,
-      companyId: company.id,
-      contactId: contact.id,
-      responsibleId: responsible.id,
-      category: category,
-      status: status,
+    const collaborationDTO = {
+      ...formData.entity,
       comment: comment?.trim(),
-      achievedValue: achievedValue?.trim() !== "" ? achievedValue?.trim() : 0,
     };
 
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
@@ -336,7 +329,7 @@ export default function CollaborationForm({
         Authorization: `Bearer ${JWToken.credential}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(collaborationData),
+      body: JSON.stringify(collaborationDTO),
     };
 
     const serverResponse = await fetch(
@@ -347,9 +340,7 @@ export default function CollaborationForm({
     if (serverResponse.ok) {
       handleOpenToast({
         type: "success",
-        info: `Collaboration between ${formData.project.name} 
-        and ${formData.company.name} 
-        ${collaboration ? "updated" : "added"}.`,
+        info: `Collaboration ${collaboration ? "updated" : "added"}.`,
       });
       setOpenModal(false);
       fetchUpdatedData();
@@ -384,11 +375,11 @@ export default function CollaborationForm({
   useEffect(() => {
     // object destructuring
     const {
-      projectId,
-      companyId,
-      responsibleId,
+      project,
+      company,
+      responsible,
       status,
-      contactId,
+      contact,
       category,
       achievedValue,
       comment,
@@ -396,18 +387,18 @@ export default function CollaborationForm({
 
     setFormData({
       entity: {
-        projectId: collaboration ? projectId : project?.id,
-        companyId: collaboration ? companyId : company?.id,
-        responsibleId: responsibleId,
+        projectId: collaboration ? project.id : projectId,
+        companyId: collaboration ? company.id : companyId,
+        responsibleId: collaboration ? responsible.id : null,
         status: collaboration ? status : statuses[0].value,
-        contactId: contactId,
+        contactId: collaboration ? contact.id : null,
         category: collaboration ? category : null,
         achievedValue: achievedValue,
         comment: comment,
       },
       validation: {
-        projectIdIsValid: collaboration ? true : project ? true : false,
-        companyIdIsValid: collaboration ? true : company ? true : false,
+        projectIdIsValid: collaboration ? true : projectId ? true : false,
+        companyIdIsValid: collaboration ? true : companyId ? true : false,
         responsibleIdIsValid: collaboration ? true : false,
         statusIsValid: true,
         contactIdIsValid: collaboration ? true : false,
@@ -420,10 +411,15 @@ export default function CollaborationForm({
     fetchExistingProjects();
     fetchExistingCompanies();
     fetchExistingUsers();
-    if (company) {
-      fetchCompanyContacts();
-    }
   }, [openModal]);
+
+  useEffect(() => {
+    if (formData.entity.companyId) {
+      fetchContacts(formData.entity.companyId);
+    } else {
+      setCompanyContacts([]);
+    }
+  }, [formData.entity.companyId]);
 
   return (
     <Backdrop open={openModal}>
@@ -482,7 +478,7 @@ export default function CollaborationForm({
                 validationKey="projectIdIsValid"
                 label="Project"
                 formatter={(option) => option.name}
-                disabledCondition={project ? true : false}
+                disabledCondition={collaboration || projectId ? true : false}
                 formData={formData}
                 setFormData={setFormData}
               />
@@ -493,7 +489,7 @@ export default function CollaborationForm({
                 validationKey="companyIdIsValid"
                 label="Company"
                 formatter={(option) => option.name}
-                disabledCondition={company ? true : false}
+                disabledCondition={collaboration || companyId ? true : false}
                 formData={formData}
                 setFormData={setFormData}
               />
@@ -558,7 +554,7 @@ export default function CollaborationForm({
                 validationKey="contactIdIsValid"
                 label="Contact in company"
                 formatter={(option) => option.firstName + " " + option.lastName}
-                disabledCondition={!formData.validation.companyIdIsValid}
+                disabledCondition={!formData.entity.companyId ? true : false}
                 helperTextCondition={!formData.validation.companyIdIsValid}
                 helperText="Select a company to change contact"
                 formData={formData}

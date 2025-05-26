@@ -22,7 +22,7 @@ export default function ContactForm({
   fetchUpdatedData,
 
   object: contact,
-  companyId,
+  company,
 }) {
   const { handleOpenToast } = useContext(ToastContext);
 
@@ -81,7 +81,7 @@ export default function ContactForm({
     };
 
     const serverResponse = await fetch(
-      `/api/companies/${companyId}/contacts${contact ? "/" + contact.id : ""}`,
+      `/api/companies/${company.id}/contacts${contact ? "/" + contact.id : ""}`,
       request
     );
 
