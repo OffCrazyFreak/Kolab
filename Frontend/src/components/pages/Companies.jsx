@@ -4,6 +4,7 @@ import {
   Button,
   Typography,
   CircularProgress,
+  ButtonGroup,
 } from "@mui/material";
 import { AddCircle as AddCircleIcon } from "@mui/icons-material";
 
@@ -17,6 +18,8 @@ import CompanyForm from "../forms/CompanyForm";
 
 import SearchBar from "./partial/SearchBar";
 import TableComponent from "./partial/TableComponent";
+
+import IndustryForm from "../forms/IndustryForm";
 
 const tableColumns = [
   {
@@ -51,8 +54,10 @@ export default function Companies() {
   const { setOpenDeleteAlert, setObject, setEndpoint, setFetchUpdatedData } =
     useContext(DeleteAlertContext);
 
-  const [openFormModal, setOpenFormModal] = useState(false);
+  const [openCompanyFormModal, setOpenCompanyFormModal] = useState(false);
   const [company, setCompany] = useState();
+  const [openIndustryFormModal, setOpenIndustryFormModal] = useState(false);
+  const [industry, setIndustry] = useState();
 
   const [data, setData] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -97,7 +102,7 @@ export default function Companies() {
 
   function handleEdit(company) {
     setCompany(company);
-    setOpenFormModal(true);
+    setOpenCompanyFormModal(true);
   }
 
   function handleDelete(company) {
@@ -114,9 +119,16 @@ export default function Companies() {
 
   return (
     <>
+      <IndustryForm
+        openModal={openIndustryFormModal}
+        setOpenModal={setOpenIndustryFormModal}
+        fetchUpdatedData={populateTable}
+        object={industry}
+      />
+
       <CompanyForm
-        openModal={openFormModal}
-        setOpenModal={setOpenFormModal}
+        openModal={openCompanyFormModal}
+        setOpenModal={setOpenCompanyFormModal}
         fetchUpdatedData={populateTable}
         object={company}
       />
@@ -137,18 +149,27 @@ export default function Companies() {
           data={data}
           setSearchResults={setSearchResults}
         />
+        <ButtonGroup variant="contained" size="medium">
+          <Button
+            startIcon={<AddCircleIcon />}
+            onClick={() => {
+              setIndustry(null);
+              setOpenIndustryFormModal(true);
+            }}
+          >
+            Add industry
+          </Button>
 
-        <Button
-          variant="contained"
-          size="medium"
-          startIcon={<AddCircleIcon />}
-          onClick={() => {
-            setCompany();
-            setOpenFormModal(true);
-          }}
-        >
-          Add company
-        </Button>
+          <Button
+            startIcon={<AddCircleIcon />}
+            onClick={() => {
+              setCompany(null);
+              setOpenCompanyFormModal(true);
+            }}
+          >
+            Add company
+          </Button>
+        </ButtonGroup>
       </Container>
 
       <Container maxWidth="false">

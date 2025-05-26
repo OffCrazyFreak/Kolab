@@ -85,6 +85,7 @@ export default function Project() {
   const [openCollaborationFormModal, setOpenCollaborationFormModal] =
     useState(false);
   const [collaboration, setCollaboration] = useState();
+  const [collaborations, setCollaborations] = useState([]);
 
   const [searchResults, setSearchResults] = useState([]);
 
@@ -102,6 +103,42 @@ export default function Project() {
         setProject(json);
         setSearchResults(
           json.collaborations
+            .map((collaboration) => {
+              return collaboration.name;
+            })
+            .sort((a, b) => (b.priority ? 1 : -1)) // sort the rows by prirority attribute on first load
+        );
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "A server error occurred whilst fetching data.",
+        });
+      }
+    } catch (error) {
+      handleOpenToast({
+        type: "error",
+        info: "An error occurred whilst trying to connect to server.",
+      });
+    }
+  }
+
+  async function fetchCollaborations() {
+    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
+    try {
+      const serverResponse = await fetch(
+        "/api/projects/" + projectId + "/collaborations",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${JWToken.credential}` },
+        }
+      );
+      if (serverResponse.ok) {
+        const json = await serverResponse.json();
+
+        setCollaboration(json);
+        setSearchResults(
+          collaborations
             .map((collaboration) => {
               return collaboration.name;
             })
@@ -152,6 +189,7 @@ export default function Project() {
 
   useEffect(() => {
     fetchProject();
+    fetchCollaborations();
   }, []);
 
   return (

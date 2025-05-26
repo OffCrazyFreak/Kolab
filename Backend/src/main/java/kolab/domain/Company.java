@@ -29,7 +29,6 @@ public class Company {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private CompanyCategorization categorization;
 
     @Enumerated(EnumType.STRING)

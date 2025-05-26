@@ -129,7 +129,6 @@ export default function CollaborationForm({
       category: null,
       achievedValue: 0,
       comment: null,
-      priority: false,
     },
     validation: {
       projectIdIsValid: false,
@@ -140,7 +139,6 @@ export default function CollaborationForm({
       categoryIsValid: false,
       achievedValueIsValid: true,
       commentIsValid: true,
-      priorityIsValid: true,
     },
   });
 
@@ -269,7 +267,7 @@ export default function CollaborationForm({
 
     try {
       const serverResponse = await fetch(
-        "/api/companies/" + formData.companyId,
+        "/api/companies/" + company?.id + "/contacts",
         {
           method: "GET",
           headers: { Authorization: `Bearer ${JWToken.credential}` },
@@ -279,7 +277,7 @@ export default function CollaborationForm({
       if (serverResponse.ok) {
         const json = await serverResponse.json();
 
-        setCompanyContacts(json.contacts);
+        setCompanyContacts(json);
       } else {
         handleOpenToast({
           type: "error",
@@ -317,36 +315,32 @@ export default function CollaborationForm({
       status,
       comment,
       achievedValue,
-      priority,
     } = formData.entity;
 
     const collaborationData = {
-      idProject: project.id,
-      idCompany: company.id,
-      idContact: contact.id,
-      idResponsible: responsible.id,
+      projectId: project.id,
+      companyId: company.id,
+      contactId: contact.id,
+      responsibleId: responsible.id,
       category: category,
       status: status,
       comment: comment?.trim(),
       achievedValue: achievedValue?.trim() !== "" ? achievedValue?.trim() : 0,
-      priority: priority,
     };
-
-    // console.log(collaborationData);
 
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
 
     const request = {
       method: collaboration ? "PUT" : "POST",
       headers: {
-       Authorization: `Bearer ${JWToken.credential}`,
+        Authorization: `Bearer ${JWToken.credential}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(collaborationData),
     };
 
     const serverResponse = await fetch(
-      `/api/collaboration/${collaboration?.id ?? ""}`,
+      `/api/collaborations${collaboration ? "/" + collaboration.id : ""}`,
       request
     );
 
@@ -398,7 +392,6 @@ export default function CollaborationForm({
       category,
       achievedValue,
       comment,
-      priority,
     } = collaboration || {};
 
     setFormData({
@@ -411,7 +404,6 @@ export default function CollaborationForm({
         category: collaboration ? category : null,
         achievedValue: achievedValue,
         comment: comment,
-        priority: collaboration ? priority : false,
       },
       validation: {
         projectIdIsValid: collaboration ? true : project ? true : false,
@@ -422,14 +414,15 @@ export default function CollaborationForm({
         categoryIsValid: collaboration ? true : false,
         achievedValueIsValid: true,
         commentIsValid: true,
-        priorityIsValid: true,
       },
     });
 
     fetchExistingProjects();
     fetchExistingCompanies();
     fetchExistingUsers();
-    fetchCompanyContacts();
+    if (company) {
+      fetchCompanyContacts();
+    }
   }, [openModal]);
 
   return (
@@ -564,7 +557,7 @@ export default function CollaborationForm({
                 entityKey="contactId"
                 validationKey="contactIdIsValid"
                 label="Contact in company"
-                formatter={(option) => option.name + " " + option.surname}
+                formatter={(option) => option.firstName + " " + option.lastName}
                 disabledCondition={!formData.validation.companyIdIsValid}
                 helperTextCondition={!formData.validation.companyIdIsValid}
                 helperText="Select a company to change contact"
@@ -653,30 +646,6 @@ export default function CollaborationForm({
                 }}
                 formData={formData}
                 setFormData={setFormData}
-              />
-
-              <FormControlLabel
-                label="Collaboration is a priority"
-                control={
-                  <Checkbox
-                    checked={formData.entity.priority}
-                    icon={<GradeOutlinedIcon />}
-                    checkedIcon={<GradeIcon />}
-                    onChange={(e) => {
-                      setFormData((prevData) => ({
-                        entity: {
-                          ...prevData.entity,
-                          priority: e.target.checked,
-                        },
-                        validation: {
-                          ...prevData.validation,
-                          priorityIsValid: true,
-                        },
-                      }));
-                    }}
-                  />
-                }
-                sx={{ margin: 0 }}
               />
             </Box>
 

@@ -392,6 +392,10 @@ export default function Company() {
                   </ListItem>
 
                   <ListItem disablePadding>
+                    <ListItemText primary={"Zip code: " + company.zip} />
+                  </ListItem>
+
+                  <ListItem disablePadding>
                     <ListItemText primary={"Address: " + company.address} />
                   </ListItem>
 
@@ -415,7 +419,7 @@ export default function Company() {
 
                   <ListItem disablePadding>
                     <ListItemText
-                      primary={"Description: " + company.description}
+                      primary={"Description: " + company.description || ""}
                       sx={{ maxHeight: 60, overflowY: "auto" }}
                     />
                   </ListItem>

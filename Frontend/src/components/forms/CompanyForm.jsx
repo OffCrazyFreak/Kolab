@@ -53,6 +53,7 @@ export default function CompanyForm({
 }) {
   const { handleOpenToast } = useContext(ToastContext);
 
+  const [existingCompanies, setExistingCompanies] = useState([]);
   const [existingIndustries, setExistingIndustries] = useState([]);
   const [countriesFromAPI, setCountriesFromAPI] = useState([]);
   const [loadingButton, setLoadingButton] = useState(false);
@@ -81,6 +82,32 @@ export default function CompanyForm({
   const [webLinkIsValid, setWebLinkIsValid] = useState(false);
   const [descriptionIsValid, setDescriptionIsValid] = useState(false);
   const [contactInFutureIsValid, setContactInFutureIsValid] = useState(false);
+
+  async function fetchExistingIndustries() {
+    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
+    try {
+      const serverResponse = await fetch("/api/companies", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
+      });
+
+      if (serverResponse.ok) {
+        const json = await serverResponse.json();
+        setExistingCompanies(json);
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "A server error occurred whilst fetching industries.",
+        });
+      }
+    } catch (error) {
+      handleOpenToast({
+        type: "error",
+        info: "An error occurred whilst trying to connect to server.",
+      });
+    }
+  }
 
   async function fetchExistingIndustries() {
     const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
@@ -143,10 +170,11 @@ export default function CompanyForm({
       !categorizationIsValid ||
       !budgetPlanningMonthIsValid ||
       !countryIsValid ||
-      !zipIsValid ||
       !cityIsValid ||
+      !zipIsValid ||
       !addressIsValid ||
-      !descriptionIsValid
+      !descriptionIsValid ||
+      !contactInFutureIsValid
     ) {
       return;
     }
@@ -157,8 +185,9 @@ export default function CompanyForm({
     const companyData = {
       name: name.trim(),
       industryId: industryId,
-      categorization: categorization,
-      budgetPlanningMonth: budgetPlanningMonth,
+      categorization: categorization === "UNKNOWN" ? null : categorization,
+      budgetPlanningMonth:
+        budgetPlanningMonth === "UNKNOWN" ? null : budgetPlanningMonth,
       country: country,
       zip: zip,
       city: city,
@@ -179,7 +208,7 @@ export default function CompanyForm({
 
     try {
       const serverResponse = await fetch(
-        `/api/companies/${company?.id ?? ""}`,
+        `/api/companies${company ? "/" + company.id : ""}`,
         request
       );
 
@@ -213,6 +242,7 @@ export default function CompanyForm({
     setBudgetPlanningMonth(company?.budgetPlanningMonth || months[0].value);
     setCountry(company?.country);
     setCity(company?.city);
+    setZip(company?.zip);
     setAddress(company?.address);
     setWebLink(company?.webLink);
     setDescription(company?.description);
@@ -224,6 +254,7 @@ export default function CompanyForm({
     setBudgetPlanningMonthIsValid(true);
     setCountryIsValid(company ? true : false);
     setCityIsValid(company ? true : false);
+    setZipIsValid(company ? true : false);
     setAddressIsValid(company ? true : false);
     setWebLinkIsValid(true);
     setDescriptionIsValid(true);
@@ -399,7 +430,7 @@ export default function CompanyForm({
               <Autocomplete
                 options={countriesFromAPI
                   .map((country) => country.name.common)
-                  .concat(existingIndustries.map((company) => company.country))
+                  .concat(existingCompanies.map((company) => company.country))
                   .filter(
                     (country, index, array) => array.indexOf(country) === index
                   )
@@ -432,7 +463,7 @@ export default function CompanyForm({
               />
 
               <Autocomplete
-                options={existingIndustries
+                options={existingCompanies
                   .map((company) => company.city)
                   .filter((city, index, array) => array.indexOf(city) === index)
                   .sort((a, b) => {
@@ -453,7 +484,7 @@ export default function CompanyForm({
 
                   // set country based on chosen city
                   if (!country || country === "") {
-                    const countryFromCity = existingIndustries.find(
+                    const countryFromCity = existingCompanies.find(
                       (company) => company.city === value
                     ).country;
 
@@ -475,6 +506,37 @@ export default function CompanyForm({
                   />
                 )}
               />
+              <TextInput
+                labelText={"Zip code"}
+                inputType={"number"}
+                isRequired
+                placeholderText={"10000"}
+                helperText={{
+                  error: "Zip code must be between 1 and 999999",
+                  details: "",
+                }}
+                inputProps={{
+                  min: 1,
+                  max: 999999,
+                  minLength: 1,
+                  maxLength: 6,
+                }}
+                validationFunction={(input) => {
+                  return (
+                    input === null ||
+                    input === "" ||
+                    (input >= 1 &&
+                      input <= 999999 &&
+                      input.length >= 1 &&
+                      input.length <= 6)
+                  );
+                }}
+                value={zip}
+                setValue={setZip}
+                valueIsValid={zipIsValid}
+                setValueIsValid={setZipIsValid}
+              />
+
               <TextInput
                 labelText={"Address"}
                 isRequired
@@ -593,8 +655,10 @@ export default function CompanyForm({
                     budgetPlanningMonthIsValid &&
                     countryIsValid &&
                     cityIsValid &&
+                    zipIsValid &&
                     addressIsValid &&
                     webLinkIsValid &&
+                    descriptionIsValid &&
                     contactInFutureIsValid
                   )
                 }

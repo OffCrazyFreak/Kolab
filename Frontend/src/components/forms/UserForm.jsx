@@ -19,25 +19,13 @@ import ToastContext from "../../context/ToastContext";
 
 import CustomTextField from "./partial/CustomTextField";
 
-const authLevels = [
+const authorizations = [
   {
-    value: "Observer",
-    label: "Observer",
+    value: "USER",
+    label: "User",
   },
   {
-    value: "Project member",
-    label: "Project member",
-  },
-  {
-    value: "Project responsible",
-    label: "Project responsible",
-  },
-  {
-    value: "Moderator",
-    label: "Moderator",
-  },
-  {
-    value: "Administrator",
+    value: "ADMINISTRATOR",
     label: "Administrator",
   },
 ];
@@ -58,10 +46,8 @@ export default function UserForm({
       name: null,
       surname: null,
       nickname: null,
-      loginEmail: null,
-      notificationEmail: null,
-      useDifferentEmails: false,
-      authLevel: authLevels[0].value,
+      email: null,
+      authorization: authorizations[0].value,
       description: null,
     },
     validation: {
@@ -69,9 +55,8 @@ export default function UserForm({
       nameIsValid: false,
       surnameIsValid: false,
       nicknameIsValid: false,
-      loginEmailIsValid: false,
-      notificationEmailIsValid: true,
-      authLevelIsValid: true,
+      emailIsValid: false,
+      authorizationIsValid: true,
       descriptionIsValid: true,
     },
   });
@@ -90,26 +75,15 @@ export default function UserForm({
     setLoadingButton(true);
 
     // object destructuring
-    const {
-      name,
-      surname,
-      nickname,
-      loginEmail,
-      notificationEmail,
-      useDifferentEmails,
-      authLevel,
-      description,
-    } = formData.entity;
+    const { name, surname, nickname, email, authorization, description } =
+      formData.entity;
 
     const userData = {
       name: name?.trim(),
       surname: surname?.trim(),
       nickname: nickname?.trim(),
-      loginEmail: loginEmail?.trim(),
-      notificationEmail: useDifferentEmails
-        ? notificationEmail?.trim()
-        : loginEmail?.trim(),
-      authority: authLevel?.trim().toUpperCase(),
+      email: email?.trim(),
+      authorization: authorization?.trim().toUpperCase(),
       description: description?.trim(),
     };
 
@@ -124,7 +98,10 @@ export default function UserForm({
       body: JSON.stringify(userData),
     };
 
-    const serverResponse = await fetch(`/api/users/${user?.id ?? ""}`, request);
+    const serverResponse = await fetch(
+      `/api/users${user ? "/" + user.id : ""}`,
+      request
+    );
 
     if (serverResponse.ok) {
       handleOpenToast({
@@ -165,36 +142,24 @@ export default function UserForm({
 
   useEffect(() => {
     // object destructuring
-    const {
-      name,
-      surname,
-      nickname,
-      loginEmail,
-      notificationEmail,
-      authority,
-      description,
-    } = user || {};
+    const { name, surname, nickname, email, authorization, description } =
+      user || {};
 
     setFormData({
       entity: {
         name: name,
         surname: surname,
         nickname: nickname,
-        loginEmail: loginEmail,
-        notificationEmail: notificationEmail,
-        useDifferentEmails: user ? true : false,
-        authLevel: user
-          ? authority?.charAt(0) + authority?.slice(1).toLowerCase()
-          : authLevels[0].value,
+        email: email,
+        authorization: user ? authorization : authorizations[0].value,
         description: description,
       },
       validation: {
         nameIsValid: user ? true : false,
         surnameIsValid: user ? true : false,
         nicknameIsValid: user ? true : false,
-        loginEmailIsValid: user ? true : false,
-        notificationEmailIsValid: true,
-        authLevelIsValid: true,
+        emailIsValid: user ? true : false,
+        authorizationIsValid: true,
         descriptionIsValid: true,
       },
     });
@@ -307,7 +272,7 @@ export default function UserForm({
               />
 
               <CustomTextField
-                labelText={"Login email"}
+                labelText={"Email"}
                 isRequired
                 placeholderText={"jane.doe@gmail.com"}
                 helperText={{
@@ -316,7 +281,7 @@ export default function UserForm({
                     "Login access to Kolab will be granted through this email",
                 }}
                 inputProps={{
-                  name: "loginEmail",
+                  name: "email",
                   minLength: 6,
                   maxLength: 55,
                 }}
@@ -333,59 +298,6 @@ export default function UserForm({
                 setFormData={setFormData}
               />
 
-              {!user && (
-                <FormControlLabel
-                  label="Use different email for notifications"
-                  control={
-                    <Checkbox
-                      checked={formData.entity.useDifferentEmails}
-                      onChange={(e) => {
-                        setFormData((prevData) => ({
-                          entity: {
-                            ...prevData.entity,
-                            useDifferentEmails: e.target.checked,
-                          },
-                          validation: {
-                            ...prevData.validation,
-                            notificationEmailIsValid: false,
-                          },
-                        }));
-                      }}
-                    />
-                  }
-                  sx={{ margin: "0" }}
-                />
-              )}
-
-              {formData.entity.useDifferentEmails && (
-                <CustomTextField
-                  labelText={"Notification email"}
-                  isRequired
-                  placeholderText={"jane.doe@gmail.com"}
-                  helperText={{
-                    error: "Invalid email or email length",
-                    details: "App notifications will be sent to this email",
-                  }}
-                  inputProps={{
-                    name: "notificationEmail",
-                    minLength: 6,
-                    maxLength: 55,
-                  }}
-                  validationFunction={(input) => {
-                    const mailformat =
-                      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-                    return (
-                      !formData.entity.useDifferentEmails ||
-                      (input.trim().length >= 6 &&
-                        input.trim().length <= 55 &&
-                        input.trim().match(mailformat))
-                    );
-                  }}
-                  formData={formData}
-                  setFormData={setFormData}
-                />
-              )}
-
               <TextField
                 label="Authorization level"
                 required
@@ -393,39 +305,36 @@ export default function UserForm({
                 select
                 margin="dense"
                 helperText={
-                  !formData.validation.authLevelIsValid &&
+                  !formData.validation.authorizationIsValid &&
                   "Invalid authorization level"
                 }
                 inputProps={{
-                  name: "authLevel",
+                  name: "authorization",
                 }}
-                value={formData.entity.authLevel}
-                error={!formData.validation.authLevelIsValid}
+                value={formData.entity.authorization}
+                error={!formData.validation.authorizationIsValid}
                 onChange={(e) => {
                   const inputValue = e.target.value;
 
                   setFormData((prevData) => ({
                     entity: {
                       ...prevData.entity,
-                      authLevel: inputValue,
+                      authorization: inputValue,
                     },
                     validation: {
                       ...prevData.validation,
-                      authLevelIsValid: authLevels.find(
+                      authorizationIsValid: authorizations.find(
                         (option) => option.value === inputValue
                       ),
                     },
                   }));
                 }}
               >
-                {authLevels.map((option) => (
+                {authorizations.map((option) => (
                   <MenuItem
                     key={option.value}
                     value={option.value}
                     // TODO: auth level can only be changed to a higher level when project responsible or member
-                    disabled={
-                      option === authLevels[1] || option === authLevels[2]
-                    }
                   >
                     {option.label}
                   </MenuItem>
