@@ -36,12 +36,12 @@ import TableComponent from "./partial/TableComponent";
 
 const tableColumns = [
   {
-    key: "companyName",
-    label: "Company name",
+    key: "project",
+    label: "Project name",
   },
   {
-    key: "projectName",
-    label: "Project name",
+    key: "company",
+    label: "Company name",
   },
   {
     key: "responsible",
@@ -64,53 +64,8 @@ const tableColumns = [
     notSortable: true,
     centerContent: true,
     xsHide: true,
-    mdHide: true,
-  },
-  {
-    key: "achievedValue",
-    label: "Value",
-    xsHide: true,
-  },
-  {
-    key: "comment",
-    label: "Comment",
-    xsHide: true,
-    mdHide: true,
-    showTooltip: true,
   },
 ];
-
-const userInfo = {
-  loginEmail: "john.doe@gmail.com",
-  authority: "ADMINISTRATOR",
-  name: "John",
-  surname: "Doe",
-  notificationEmail: "john.doe@gmail.com",
-  description: "Default humanoid being.",
-  nickname: "JD",
-  projects: [
-    {
-      id: 1,
-      name: "Javor",
-      authority: "Member",
-    },
-  ],
-  collaborations: [
-    {
-      id: 1,
-      companyName: "Company",
-      projectName: "Project",
-      responsible: "John Doe",
-      contact: "Jane Smith",
-      priority: false,
-      category: "FINANCIAL",
-      status: "CONTACTED",
-      comment:
-        "Sample comment 1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa a daw dawdawwd awdawda dwd ",
-      achievedValue: 75,
-    },
-  ],
-};
 
 export default function User() {
   const { userId } = useParams();
@@ -122,9 +77,13 @@ export default function User() {
 
   const [openUserFormModal, setOpenUserFormModal] = useState(false);
   const [user, setUser] = useState([]);
+
+  const [userProjects, setUserProjects] = useState([]);
+
   const [openCollaborationFormModal, setOpenCollaborationFormModal] =
     useState(false);
   const [collaboration, setCollaboration] = useState();
+  const [collaborations, setCollaborations] = useState([]);
 
   const [searchResults, setSearchResults] = useState([]);
 
@@ -161,12 +120,85 @@ export default function User() {
     }
   }
 
-  function handleEditUser() {
-    setOpenUserFormModal(true);
+  async function fetchUserProjects() {
+    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
+    try {
+      const serverResponse = await fetch("/api/users/" + userId + "/projects", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${JWToken.credential}` },
+      });
+      if (serverResponse.ok) {
+        const json = await serverResponse.json();
+
+        setUserProjects(json);
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "A server error occurred whilst fetching data.",
+        });
+      }
+    } catch (error) {
+      handleOpenToast({
+        type: "error",
+        info: "An error occurred whilst trying to connect to server.",
+      });
+    }
+  }
+
+  async function fetchCollaborations() {
+    const JWToken = JSON.parse(localStorage.getItem("loginInfo")).JWT;
+
+    try {
+      const serverResponse = await fetch(
+        "/api/users/" + userId + "/collaborations",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${JWToken.credential}` },
+        }
+      );
+      if (serverResponse.ok) {
+        const json = await serverResponse.json();
+
+        setCollaborations(json);
+        // sort by project name then by company name
+        setSearchResults(
+          json.sort((a, b) => {
+            if (a.project.name < b.project.name) {
+              return -1;
+            } else if (a.project.name > b.project.name) {
+              return 1;
+            } else {
+              if (a.company.name < b.company.name) {
+                return -1;
+              } else if (a.company.name > b.company.name) {
+                return 1;
+              } else {
+                return 0;
+              }
+            }
+          })
+        );
+      } else {
+        handleOpenToast({
+          type: "error",
+          info: "A server error occurred whilst fetching data.",
+        });
+      }
+    } catch (error) {
+      handleOpenToast({
+        type: "error",
+        info: "An error occurred whilst trying to connect to server.",
+      });
+    }
   }
 
   function navigateUsers() {
     navigate("/users");
+  }
+
+  function handleEditUser() {
+    setOpenUserFormModal(true);
   }
 
   function handleDeleteUser() {
@@ -185,17 +217,15 @@ export default function User() {
   function handleDeleteCollaboration(collaboration) {
     setObject({ type: "Collaboration", name: collaboration.name });
     setEndpoint("/api/collaborations/" + collaboration.id);
-    setFetchUpdatedData({ function: fetchUser });
+    setFetchUpdatedData({ function: fetchCollaborations });
 
     setOpenDeleteAlert(true);
   }
 
   useEffect(() => {
     fetchUser();
-
-    setSearchResults(
-      userInfo.collaborations.sort((a, b) => (b.priority ? 1 : -1))
-    ); // TODO: remove when backend is connected
+    fetchUserProjects();
+    fetchCollaborations();
   }, []);
 
   return (
@@ -205,6 +235,15 @@ export default function User() {
         setOpenModal={setOpenUserFormModal}
         fetchUpdatedData={fetchUser}
         object={user}
+      />
+
+      <CollaborationForm
+        openModal={openCollaborationFormModal}
+        setOpenModal={setOpenCollaborationFormModal}
+        fetchUpdatedData={fetchCollaborations}
+        object={collaboration}
+        projectId={null}
+        companyId={null}
       />
 
       <Box
@@ -302,7 +341,7 @@ export default function User() {
                 textTransform: "uppercase",
               }}
             >
-              {userInfo.name + " " + userInfo.surname}
+              {user.name + " " + user.surname}
             </Typography>
 
             <Accordion defaultExpanded sx={{ marginBlock: 2 }}>
@@ -318,32 +357,22 @@ export default function User() {
               <AccordionDetails>
                 <List dense>
                   <ListItem disablePadding>
+                    <ListItemText primary={"Login email: " + user.email} />
+                  </ListItem>
+
+                  <ListItem disablePadding>
                     <ListItemText
-                      primary={"Login email: " + userInfo.loginEmail}
+                      primary={"Authority: " + user.authorization}
                     />
                   </ListItem>
 
                   <ListItem disablePadding>
-                    <ListItemText
-                      primary={"Authority: " + userInfo.authority}
-                    />
+                    <ListItemText primary={"Nickname: " + user.nickname} />
                   </ListItem>
 
                   <ListItem disablePadding>
                     <ListItemText
-                      primary={
-                        "Notification email: " + userInfo.notificationEmail
-                      }
-                    />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText primary={"Nickname: " + userInfo.nickname} />
-                  </ListItem>
-
-                  <ListItem disablePadding>
-                    <ListItemText
-                      primary={"Description: " + userInfo.description}
+                      primary={"Description: " + user.description}
                       sx={{ maxHeight: 60, overflowY: "auto" }}
                     />
                   </ListItem>
@@ -366,7 +395,7 @@ export default function User() {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                {userInfo.projects?.map((project) => (
+                {userProjects?.map((project) => (
                   <Box key={project.id} sx={{ marginBlock: 2 }}>
                     <Box
                       sx={{
@@ -377,15 +406,6 @@ export default function User() {
                     >
                       <Typography>{project.name}</Typography>
                     </Box>
-
-                    <List dense>
-                      <ListItem>
-                        <ListItemText
-                          primary={"    - " + project.authority}
-                          sx={{ overflow: "hidden" }}
-                        />
-                      </ListItem>
-                    </List>
                   </Box>
                 ))}
               </AccordionDetails>
@@ -414,13 +434,13 @@ export default function User() {
           >
             <SearchBar
               type="collaborations"
-              data={userInfo.collaborations}
+              data={collaborations}
               setSearchResults={setSearchResults}
             />
           </Container>
 
           <Container maxWidth="false">
-            {userInfo.collaborations?.length <= 0 ? (
+            {collaborations?.length <= 0 ? (
               <Typography variant="h4" align="center">
                 {"No collaborations :("}
               </Typography>
@@ -432,7 +452,7 @@ export default function User() {
                 // TODO: handleView={handleView} when we add activites
                 handleEdit={handleEditCollaboration}
                 handleDelete={handleDeleteCollaboration}
-              ></TableComponent>
+              />
             )}
           </Container>
         </Box>

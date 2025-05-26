@@ -218,7 +218,7 @@ export default function Company() {
   function handleDeleteCollaboration(collaboration) {
     setObject({ type: "Collaboration", name: collaboration.name });
     setEndpoint("/api/collaborations/" + collaboration.id);
-    setFetchUpdatedData({ function: fetchCompany });
+    setFetchUpdatedData({ function: fetchCollaborations });
 
     setOpenDeleteAlert(true);
   }

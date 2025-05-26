@@ -77,6 +77,7 @@ export default function Project() {
 
   const [openProjectFormModal, setOpenProjectFormModal] = useState(false);
   const [project, setProject] = useState();
+
   const [openCollaborationFormModal, setOpenCollaborationFormModal] =
     useState(false);
   const [collaboration, setCollaboration] = useState();
@@ -171,7 +172,7 @@ export default function Project() {
   function handleDeleteCollaboration(collaboration) {
     setObject({ type: "Collaboration", name: collaboration.name });
     setEndpoint("/api/collaborations/" + collaboration.id);
-    setFetchUpdatedData({ function: fetchProject });
+    setFetchUpdatedData({ function: fetchCollaborations });
 
     setOpenDeleteAlert(true);
   }
