@@ -69,6 +69,7 @@ export default function DeleteAlert() {
         info:
           "An unknown error accured whilst trying to delete " +
           object?.type.toLowerCase() +
+          " " +
           object?.name +
           ".",
       });

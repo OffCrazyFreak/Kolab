@@ -45,24 +45,6 @@ class UserControllerTest {
     // === Tests ===
 
     @Test
-    void testLoginUserWithValidJwtToken() {
-        String token = "valid.jwt.token";
-        String bearerToken = "Bearer " + token;
-        String email = randomEmail();
-        User mockUser = createUser(email);
-
-        when(jwtService.extractEmail(token)).thenReturn(email);
-        when(userService.findByEmail(email)).thenReturn(mockUser);
-
-        ResponseEntity<?> response = userController.loginUser(bearerToken);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertSame(mockUser, response.getBody());
-        verify(jwtService).extractEmail(token);
-        verify(userService).findByEmail(email);
-    }
-
-    @Test
     void testUpdateUserWithValidData() {
         UUID userId = UUID.randomUUID();
         String updatedEmail = randomEmail();
@@ -121,20 +103,6 @@ class UserControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("User not found", response.getBody());
         verify(userService).getUserById(userId);
-    }
-
-    @Test
-    void testLoginUserWithInvalidJwtToken() {
-        String token = "invalid.jwt.token";
-        String bearerToken = "Bearer " + token;
-
-        when(jwtService.extractEmail(token)).thenThrow(new RuntimeException("Invalid token"));
-
-        ResponseEntity<?> response = userController.loginUser(bearerToken);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertEquals("Invalid token format", response.getBody());
-        verify(jwtService).extractEmail(token);
     }
 
     @Test

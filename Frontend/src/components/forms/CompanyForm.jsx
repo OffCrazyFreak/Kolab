@@ -374,6 +374,7 @@ export default function CompanyForm({
               <TextField
                 label="ABC categorization"
                 fullWidth
+                required
                 select
                 margin="dense"
                 helperText={

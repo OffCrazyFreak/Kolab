@@ -40,8 +40,10 @@ public class UserControllerIntegrationTest {
 
         String userJson = objectMapper.writeValueAsString(user);
 
+        // send header with bearer token
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer 12345")
                         .content(userJson))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value(email));

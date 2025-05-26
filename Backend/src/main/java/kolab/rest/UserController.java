@@ -48,14 +48,28 @@ public class UserController {
     }
 
     @PostMapping("")
-    public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
-        String email = user.getEmail();
-        if (userService.findByEmail(email) != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User with email " + email + " already exists");
-        }
+    // public ResponseEntity<?> createUser(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody User newUser) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody User newUser) {
+        // String token = authHeader.startsWith("Bearer ") ? 
+        //     authHeader.substring(7) : authHeader;
+        // String email = jwtService.extractEmail(token);
+        // User user = userService.findByEmail(email);
+
+        // Long numOfUsers = userService.countUsers();
+
+        // if (numOfUsers > 0) {
+            // if (user.getAuthorization() != UserAuthorization.ADMINISTRATOR) {
+            //     return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only admin can create users");
+            // }
+
+            String newUserEmail = newUser.getEmail();
+            if (userService.findByEmail(newUserEmail) != null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("User with email " + newUserEmail + " already exists");
+            }
+        // }
 
         try {
-            User createdUser = userService.createUser(user);
+            User createdUser = userService.createUser(newUser);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -91,49 +105,6 @@ public class UserController {
             return ResponseEntity.ok().build();
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestHeader("Authorization") String authHeader) {
-        try {
-            // Remove "Bearer " prefix if present
-            String token = authHeader.startsWith("Bearer ") ? 
-                authHeader.substring(7) : authHeader;
-
-            // Extract email from Google JWT
-            String email = jwtService.extractEmail(token);
-            
-            // Find user by email
-            User user = userService.findByEmail(email);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("User not found");
-            }
-
-            return ResponseEntity.ok(user);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Invalid token format");
-        }
-    }
-
-    // TODO: remove when connected to frontend JWT so you can use the enpoint above
-    @PostMapping("/login-email")
-    public ResponseEntity<?> loginUserByEmail(@RequestHeader("Email") String email) {
-        try {
-           
-            // Find user by email
-            User user = userService.findByEmail(email);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("User not found");
-            }
-
-            return ResponseEntity.ok(user);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Invalid token format");
         }
     }
 

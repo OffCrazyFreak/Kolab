@@ -11,6 +11,7 @@ public interface UserService {
     User createUser(User user);
     User updateUser(UUID id, User updatedUser);
     void deleteUser(UUID id);
+    Long countUsers();
 }
 
 

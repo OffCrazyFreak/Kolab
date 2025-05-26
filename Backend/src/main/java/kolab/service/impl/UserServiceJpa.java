@@ -62,6 +62,11 @@ public class UserServiceJpa implements UserService {
         }
     }
 
+    @Override
+    public Long countUsers() {
+        return userRepo.count();
+    }
+    
     private void validateUser(User user) {
         if (user.getEmail() == null || !user.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
             throw new IllegalArgumentException("Invalid email format");

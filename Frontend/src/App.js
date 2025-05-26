@@ -42,7 +42,7 @@ export default function App() {
     setLoadingUser(true);
 
     try {
-      const serverResponse = await fetch("/api/users/login", {
+      const serverResponse = await fetch("/api/login", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${JWToken.credential}`,

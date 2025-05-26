@@ -10,6 +10,7 @@ import { AddCircle as AddCircleIcon } from "@mui/icons-material";
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
+import UserContext from "../../context/UserContext";
 import ToastContext from "../../context/ToastContext";
 import DeleteAlertContext from "../../context/DeleteAlertContext";
 
@@ -27,6 +28,7 @@ const tableColumns = [
 ];
 
 export default function Users() {
+  const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
   const { handleOpenToast } = useContext(ToastContext);
@@ -34,7 +36,7 @@ export default function Users() {
     useContext(DeleteAlertContext);
 
   const [openFormModal, setOpenFormModal] = useState(false);
-  const [user, setUser] = useState();
+  const [userData, setUserData] = useState();
 
   const [data, setData] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
@@ -78,7 +80,7 @@ export default function Users() {
   }
 
   function handleEdit(user) {
-    setUser(user);
+    setUserData(user);
     setOpenFormModal(true);
   }
 
@@ -100,7 +102,7 @@ export default function Users() {
         openModal={openFormModal}
         setOpenModal={setOpenFormModal}
         fetchUpdatedData={populateTable}
-        object={user}
+        object={userData}
       />
 
       <Container
@@ -120,17 +122,19 @@ export default function Users() {
           setSearchResults={setSearchResults}
         />
 
-        <Button
-          variant="contained"
-          size="medium"
-          startIcon={<AddCircleIcon />}
-          onClick={() => {
-            setUser();
-            setOpenFormModal(true);
-          }}
-        >
-          Add user
-        </Button>
+        {user?.authorization === "ADMINISTRATOR" && (
+          <Button
+            variant="contained"
+            size="medium"
+            startIcon={<AddCircleIcon />}
+            onClick={() => {
+              setUserData();
+              setOpenFormModal(true);
+            }}
+          >
+            Add user
+          </Button>
+        )}
       </Container>
 
       <Container maxWidth="false">

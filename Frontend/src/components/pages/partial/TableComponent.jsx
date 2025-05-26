@@ -227,7 +227,9 @@ export default function TableComponent({
             </TableCell>
           ))}
 
-          <TableCell align="center">Actions</TableCell>
+          {(handleView || handleEdit || handleDelete) && (
+            <TableCell align="center">Actions</TableCell>
+          )}
         </TableRow>
       </TableHead>
       <TableBody>
@@ -265,81 +267,83 @@ export default function TableComponent({
               );
             })}
 
-            <TableCell
-              sx={{
-                padding: 0.5,
-
-                backgroundColor: result.priority ? "whitesmoke" : "inherit",
-              }}
-            >
-              <Box
+            {(handleView || handleEdit || handleDelete) && (
+              <TableCell
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 0.5,
-
                   padding: 0.5,
 
                   backgroundColor: result.priority ? "whitesmoke" : "inherit",
                 }}
               >
-                {handleView && (
-                  <Tooltip title="Details" key="Details">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleView(result)}
-                      sx={{
-                        color: "white",
-                        backgroundColor: "#1976d2",
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.5,
 
-                        borderRadius: 1,
+                    padding: 0.5,
 
-                        width: { xs: 20, md: "unset" },
-                      }}
-                    >
-                      <DetailsIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
-                {handleEdit && (
-                  <Tooltip title="Edit" key="Edit">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleEdit(result)}
-                      sx={{
-                        color: "white",
-                        backgroundColor: "#1976d2",
+                    backgroundColor: result.priority ? "whitesmoke" : "inherit",
+                  }}
+                >
+                  {handleView && (
+                    <Tooltip title="Details" key="Details">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleView(result)}
+                        sx={{
+                          color: "white",
+                          backgroundColor: "#1976d2",
 
-                        borderRadius: 1,
+                          borderRadius: 1,
 
-                        width: { xs: 20, md: "unset" },
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
-                {handleDelete && (
-                  <Tooltip title="Delete">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDelete(result)}
-                      sx={{
-                        color: "white",
-                        backgroundColor: "#1976d2",
+                          width: { xs: 20, md: "unset" },
+                        }}
+                      >
+                        <DetailsIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {handleEdit && (
+                    <Tooltip title="Edit" key="Edit">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEdit(result)}
+                        sx={{
+                          color: "white",
+                          backgroundColor: "#1976d2",
 
-                        borderRadius: 1,
+                          borderRadius: 1,
 
-                        width: { xs: 20, md: "unset" },
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </Box>
-            </TableCell>
+                          width: { xs: 20, md: "unset" },
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {handleDelete && (
+                    <Tooltip title="Delete">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDelete(result)}
+                        sx={{
+                          color: "white",
+                          backgroundColor: "#1976d2",
+
+                          borderRadius: 1,
+
+                          width: { xs: 20, md: "unset" },
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
+              </TableCell>
+            )}
           </TableRow>
         ))}
       </TableBody>
